@@ -6,7 +6,6 @@ import DashboardSubNav from '@/components/DashboardSubNav.vue';
 
 const route = useRoute();
 
-// ตรวจสอบว่าอยู่ใน dashboard route หรือไม่ (ทุก route ยกเว้น auth routes)
 const isDashboardRoute = computed(() => {
   const authRoutes = ['/', '/login', '/register'];
   return !authRoutes.includes(route.path);
@@ -15,7 +14,6 @@ const isDashboardRoute = computed(() => {
 
 <template>
   <div class="app-container">
-    <!-- Global Navigation - แสดงเฉพาะใน dashboard routes -->
     <template v-if="isDashboardRoute">
       <DashboardNavbar />
       <DashboardSubNav />
