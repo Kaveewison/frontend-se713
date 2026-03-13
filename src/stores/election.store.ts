@@ -1,0 +1,134 @@
+import { defineStore } from 'pinia';
+import { httpClient } from '@/api/client';
+import { API_ENDPOINTS } from '@/api/endpoints';
+import type {
+  PartyOverview,
+  PartyOverviewResponse,
+  CreatePartyDTO,
+  UpdatePartyDTO,
+  ElectionResultsData,
+  ElectionResultsResponse,
+} from '@/types/dto/election.dto';
+
+export const useElectionStore = defineStore('election', {
+  state: () => ({
+    partyOverview: [] as PartyOverview[],
+    electionResults: null as ElectionResultsData | null,
+    isLoading: false,
+    error: null as string | null,
+  }),
+
+  getters: {
+    totalParties: (state) => state.partyOverview.length,
+
+    totalElectedMPs: (state) =>
+      state.partyOverview.reduce(
+        (sum: number, party: PartyOverview) => sum + party.totalElectedMPs,
+        0,
+      ),
+
+    getPartyOverviewById: (state) => (id: number) =>
+      state.partyOverview.find((party: PartyOverview) => party.id === id),
+
+    sortedByElectedMPs: (state) =>
+      [...state.partyOverview].sort(
+        (a, b) => b.totalElectedMPs - a.totalElectedMPs,
+      ),
+  },
+
+  actions: {
+    async fetchPartyOverview(): Promise<void> {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const response = await httpClient.get<PartyOverviewResponse>(
+          API_ENDPOINTS.ELECTION.OVERVIEW,
+        );
+        this.partyOverview = response.data;
+      } catch (err: any) {
+        this.error =
+          err.message || 'เกิดข้อผิดพลาดในการดึงข้อมูลภาพรวมพรรคการเมือง';
+        throw err;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    async fetchElectionResults(constituencyId: number): Promise<void> {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const response = await httpClient.get<ElectionResultsResponse>(
+          API_ENDPOINTS.ELECTION.ELECTION_RESULTS(constituencyId),
+        );
+        this.electionResults = response.data;
+      } catch (err: any) {
+        this.error =
+          err.message || 'เกิดข้อผิดพลาดในการดึงข้อมูลผลการเลือกตั้ง';
+        throw err;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    clearPartyOverview(): void {
+      this.partyOverview = [];
+      this.error = null;
+    },
+
+    async updateParty(
+      partyId: number,
+      updateData: UpdatePartyDTO,
+    ): Promise<PartyOverview> {
+      try {
+        const response = await httpClient.put<{ data: PartyOverview }>(
+          API_ENDPOINTS.ELECTION.UPDATE_PARTY(partyId),
+          updateData,
+        );
+        return response.data;
+      } catch (err: any) {
+        const errorMessage =
+          err.response?.data?.message ||
+          err.message ||
+          'เกิดข้อผิดพลาดในการอัปเดตข้อมูลพรรค';
+        throw new Error(errorMessage);
+      }
+    },
+
+    async createParty(createData: CreatePartyDTO): Promise<PartyOverview> {
+      try {
+        const response = await httpClient.post<{ data: PartyOverview }>(
+          API_ENDPOINTS.ELECTION.CREATE_PARTY,
+          createData,
+        );
+        return response.data;
+      } catch (err: any) {
+        const errorMessage =
+          err.response?.data?.message ||
+          err.message ||
+          'เกิดข้อผิดพลาดในการสร้างพรรค';
+        throw new Error(errorMessage);
+      }
+    },
+
+    async uploadPartyLogo(partyId: number, file: File): Promise<void> {
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        await httpClient.post(
+          API_ENDPOINTS.ELECTION.UPLOAD_PARTY_LOGO(partyId),
+          formData,
+          { headers: { 'Content-Type': 'multipart/form-data' } },
+        );
+      } catch (err: any) {
+        const errorMessage =
+          err.response?.data?.message ||
+          err.message ||
+          'เกิดข้อผิดพลาดในการอัปโหลดโลโก้';
+        throw new Error(errorMessage);
+      }
+    },
+  },
+});
