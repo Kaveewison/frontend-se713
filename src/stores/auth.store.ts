@@ -25,6 +25,8 @@ export const useAuthStore = defineStore("auth", {
 
   getters: {
     userRole: (state) => state.currentUser?.role,
+    isECTUser: (state) =>
+      state.currentUser?.role === "ADMIN" || state.currentUser?.role === "EC",
     userName: (state) =>
       state.currentUser
         ? `${state.currentUser.firstName} ${state.currentUser.lastName}`

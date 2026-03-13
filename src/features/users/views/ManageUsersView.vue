@@ -23,21 +23,6 @@ function isECT(role: string): boolean {
   return role === UserRole.EC;
 }
 
-function roleBadgeClass(role: string): string {
-  if (role === UserRole.ADMIN) return 'badge badge-admin';
-  if (role === UserRole.EC) return 'badge badge-ect';
-  return 'badge badge-voter';
-}
-
-function roleLabel(role: string): string {
-  const map: Record<string, string> = {
-    VOTER: 'ผู้มีสิทธิ์',
-    EC: 'กกต.',
-    ADMIN: 'Admin',
-  };
-  return map[role] ?? role;
-}
-
 async function handleToggleECT(userId: number): Promise<void> {
   try {
     await userStore.toggleECTStatus(userId);

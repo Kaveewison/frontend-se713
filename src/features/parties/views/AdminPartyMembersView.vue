@@ -140,15 +140,15 @@ const removeMember = async (userId: number) => {
             <td data-label="ชื่อ-นามสกุล">
               <div class="member-info">
                 <img
-                  :src="`https://api.dicebear.com/7.x/avataaars/svg?seed=${member.name.replace(' ', '')}`"
+                  :src="`https://api.dicebear.com/7.x/avataaars/svg?seed=${member.firstName}${member.lastName}`"
                   alt="avatar"
                   class="member-avatar"
                 />
-                <span>{{ member.name }}</span>
+                <span>{{ member.firstName }} {{ member.lastName }}</span>
               </div>
             </td>
             <td data-label="เลขประจำตัว" class="text-muted">
-              {{ member.citizenId }}
+              {{ member.nationalId }}
             </td>
             <td data-label="ตำแหน่ง">
               <span

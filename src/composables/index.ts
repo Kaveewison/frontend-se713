@@ -10,5 +10,5 @@ export { useToast } from './useToast';
 export { useForm } from './useForm';
 export { onClickOutside } from './useClickOutside';
 
-export type { Toast, ToastType } from './useToast';
+export type { ToastType } from './useToast';
 export type { ValidationRule, FormField, UseFormOptions } from './useForm';
