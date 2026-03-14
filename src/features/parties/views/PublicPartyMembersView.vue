@@ -1,47 +1,21 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { httpClient } from '@/api/client';
-import { API_ENDPOINTS } from '@/api/endpoints';
+import { storeToRefs } from 'pinia';
+import { useConstituencyStore, useElectionStore } from '@/stores';
+
 import CommonDropdown from '@/components/common/CommonDropdown.vue';
 import type { DropdownOption } from '@/components/common/CommonDropdown.vue';
 
 const route = useRoute();
+const constituencyStore = useConstituencyStore();
+const electionStore = useElectionStore();
+
 const partyId = computed(() => Number(route.params.id) || 1);
+const isPublicRoute = computed(() => route.path.includes('/parties/public'));
+const backPath = computed(() => isPublicRoute.value ? '/parties/public' : '/candidates/party');
 
-interface Constituency {
-  id: number;
-  province: string;
-  districtNumber: number;
-  isClosed: boolean;
-}
-
-interface Candidate {
-  id: number;
-  candidateNumber: number;
-  title: string;
-  firstName: string;
-  lastName: string;
-  imageUrl: string | null;
-  policy: string;
-  constituency: Constituency;
-  voteCount: number | null;
-  isElected: boolean;
-}
-
-interface PartyDetail {
-  id: number;
-  name: string;
-  logoUrl: string;
-  policy: string;
-  totalCandidates: number;
-  totalElectedMPs: number;
-  candidates: Candidate[];
-}
-
-const party = ref<PartyDetail | null>(null);
-const isLoading = ref(false);
-const error = ref<string | null>(null);
+const { publicPartyDetail: party, isLoading, error } = storeToRefs(electionStore);
 
 // Filters
 const filterProvince = ref('');
@@ -49,7 +23,9 @@ const filterDistrict = ref<number | ''>('');
 
 const provinceOptions = computed<DropdownOption[]>(() => {
   if (!party.value) return [];
-  const set = new Set(party.value.candidates.map((c) => c.constituency.province));
+  const set = new Set(
+    party.value.candidates.map((c) => c.constituency.province),
+  );
   const opts: DropdownOption[] = [{ label: 'ทุกจังหวัด', value: '' }];
   Array.from(set)
     .sort()
@@ -60,7 +36,9 @@ const provinceOptions = computed<DropdownOption[]>(() => {
 const districtOptions = computed<DropdownOption[]>(() => {
   if (!party.value) return [];
   const candidates = filterProvince.value
-    ? party.value.candidates.filter((c) => c.constituency.province === filterProvince.value)
+    ? party.value.candidates.filter(
+        (c) => c.constituency.province === filterProvince.value,
+      )
     : party.value.candidates;
   const set = new Set(candidates.map((c) => c.constituency.districtNumber));
   const opts: DropdownOption[] = [{ label: 'ทุกเขต', value: '' }];
@@ -93,27 +71,18 @@ const filteredCandidates = computed(() => {
   });
 });
 
-const isAllClosed = computed(
-  () => party.value?.candidates.every((c) => c.constituency.isClosed) ?? false,
-);
+const isAllClosed = computed(() => !constituencyStore.isAllOpened);
 
 async function fetchParty() {
-  isLoading.value = true;
-  error.value = null;
   try {
-    const res = await httpClient.get<{ success: boolean; data: PartyDetail }>(
-      API_ENDPOINTS.ELECTION.PUBLIC_PARTY_BY_ID(partyId.value),
-    );
-    party.value = res.data;
-  } catch (err: any) {
-    error.value = err.message || 'ไม่สามารถโหลดข้อมูลพรรคได้';
-  } finally {
-    isLoading.value = false;
+    await electionStore.fetchPublicPartyById(partyId.value);
+  } catch {
+    // error is already set in the store
   }
 }
 
 onMounted(() => {
-  fetchParty();
+  Promise.all([fetchParty(), constituencyStore.fetchConstituencies()]);
 });
 </script>
 
@@ -121,8 +90,6 @@ onMounted(() => {
   <div class="card">
     <!-- Header -->
     <div class="header-banner">
-
-
       <!-- Loading skeleton -->
       <div v-if="isLoading" class="party-info">
         <div class="skeleton-logo"></div>
@@ -154,7 +121,9 @@ onMounted(() => {
           <p class="subtitle">{{ party.policy }}</p>
         </div>
 
-        <button class="btn-view" @click="$router.push('/parties/public')">กลับ</button>
+        <button class="btn-view" @click="$router.push(backPath)">
+          กลับ
+        </button>
       </div>
     </div>
 
@@ -185,7 +154,14 @@ onMounted(() => {
 
         <div class="status-toggle">
           <span class="status-label">สถานะการปิดหีบ: </span>
-          <span class="status-label" :class="{ '!text-red-500': isAllClosed, '!text-green-500': !isAllClosed }">{{ isAllClosed ? 'ปิด' : 'เปิด' }}</span>
+          <span
+            class="status-label"
+            :class="{
+              '!text-red-500': isAllClosed,
+              '!text-green-500': !isAllClosed,
+            }"
+            >{{ isAllClosed ? 'ปิด' : 'เปิด' }}</span
+          >
         </div>
       </div>
 
@@ -367,8 +343,6 @@ onMounted(() => {
   gap: 0.75rem;
   flex-wrap: wrap;
 }
-
-
 
 .election-status {
   font-size: 0.9rem;

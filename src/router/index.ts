@@ -92,18 +92,6 @@ const router = createRouter({
             menuGroup: 'parties',
           },
         },
-        {
-          path: ':id/members',
-          name: 'admin-party-members',
-          component: () =>
-            import('../features/parties/views/AdminPartyMembersView.vue'),
-          meta: {
-            requiresAuth: false,
-            requiresECT: true,
-            useDashboardLayout: true,
-            menuGroup: 'admin',
-          },
-        },
       ],
     },
     {
@@ -115,6 +103,18 @@ const router = createRouter({
           name: 'setup-parties',
           component: () =>
             import('../features/candidates/views/SetupPartiesView.vue'),
+          meta: {
+            requiresAuth: false,
+            requiresECT: true,
+            useDashboardLayout: true,
+            menuGroup: 'admin',
+          },
+        },
+        {
+          path: 'party/:id',
+          name: 'party-members',
+          component: () =>
+            import('../features/parties/views/PublicPartyMembersView.vue'),
           meta: {
             requiresAuth: false,
             requiresECT: true,

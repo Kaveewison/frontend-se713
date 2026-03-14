@@ -8,12 +8,15 @@ import type {
   UpdatePartyDTO,
   ElectionResultsData,
   ElectionResultsResponse,
+  PartyDetail,
+  PartyDetailResponse,
 } from '@/types/dto/election.dto';
 
 export const useElectionStore = defineStore('election', {
   state: () => ({
     partyOverview: [] as PartyOverview[],
     electionResults: null as ElectionResultsData | null,
+    publicPartyDetail: null as PartyDetail | null,
     isLoading: false,
     error: null as string | null,
   }),
@@ -76,6 +79,23 @@ export const useElectionStore = defineStore('election', {
     clearPartyOverview(): void {
       this.partyOverview = [];
       this.error = null;
+    },
+
+    async fetchPublicPartyById(id: number): Promise<void> {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const response = await httpClient.get<PartyDetailResponse>(
+          API_ENDPOINTS.ELECTION.PUBLIC_PARTY_BY_ID(id),
+        );
+        this.publicPartyDetail = response.data;
+      } catch (err: any) {
+        this.error = err.message || 'ไม่สามารถโหลดข้อมูลพรรคได้';
+        throw err;
+      } finally {
+        this.isLoading = false;
+      }
     },
 
     async updateParty(

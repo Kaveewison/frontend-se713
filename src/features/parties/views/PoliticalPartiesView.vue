@@ -120,7 +120,12 @@ const saveParty = async () => {
             <td data-label="ลำดับ" class="index-col">{{ index + 1 }}</td>
             <td data-label="พรรคการเมือง">
               <div class="party-info">
-                <img :src="party.logo" alt="logo" class="party-logo" />
+                <img
+                  :src="party.logo?.trim() || `https://api.dicebear.com/7.x/identicon/svg?seed=${party.name}`"
+                  alt="logo"
+                  class="party-logo"
+                  @error="(e: Event) => ((e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/identicon/svg?seed=${party.name}`)"
+                />
                 <span class="party-name">{{ party.name }}</span>
               </div>
             </td>
@@ -136,7 +141,7 @@ const saveParty = async () => {
                 </button>
                 <button
                   class="btn btn-action btn-members"
-                  @click="$router.push(`/parties/${party.id}/members`)"
+                  @click="$router.push(`/parties/public/${party.id}`)"
                 >
                   รายชื่อสมาชิก
                 </button>

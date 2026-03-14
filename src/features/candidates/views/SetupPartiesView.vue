@@ -69,7 +69,7 @@ const handleEdit = (party: PartyOverview) => {
 };
 
 const handleViewMembers = (partyId: number) => {
-  router.push(`/parties/${partyId}/members`);
+  router.push(`/candidates/party/${partyId}`);
 };
 
 const triggerFileInput = (isAdd = false) => {
@@ -300,9 +300,10 @@ onUnmounted(() => {
             <td data-label="พรรคการเมือง">
               <div class="party-info">
                 <img
-                  :src="party.logoUrl"
+                  :src="party.logoUrl?.trim() || `https://api.dicebear.com/7.x/identicon/svg?seed=${party.name}`"
                   :alt="party.name"
                   class="party-logo"
+                  @error="(e: Event) => ((e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/identicon/svg?seed=${party.name}`)"
                 />
                 <span class="party-name">{{ party.name }}</span>
               </div>
@@ -347,9 +348,15 @@ onUnmounted(() => {
           <div class="profile-header">
             <div class="avatar-circle">
               <img
-                :src="addPreviewUrl || 'https://via.placeholder.com/150'"
+                v-if="addPreviewUrl"
+                :src="addPreviewUrl"
                 alt="Party logo preview"
               />
+              <svg v-else viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5" class="placeholder-icon">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+              </svg>
             </div>
             <div class="upload-actions">
               <input
@@ -411,13 +418,16 @@ onUnmounted(() => {
           <div class="profile-header">
             <div class="avatar-circle">
               <img
-                :src="
-                  previewUrl ||
-                  selectedParty?.logoUrl ||
-                  'https://via.placeholder.com/150'
-                "
+                v-if="previewUrl || selectedParty?.logoUrl?.trim()"
+                :src="previewUrl || selectedParty?.logoUrl"
                 :alt="selectedParty?.name || 'Party logo'"
+                @error="(e: Event) => ((e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/identicon/svg?seed=${selectedParty?.name}`)"
               />
+              <svg v-else viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5" class="placeholder-icon">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+              </svg>
             </div>
             <div class="upload-actions">
               <input
@@ -726,6 +736,12 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+
+.placeholder-icon {
+  width: 48px;
+  height: 48px;
+  color: #cbd5e1;
 }
 
 .avatar-circle img {

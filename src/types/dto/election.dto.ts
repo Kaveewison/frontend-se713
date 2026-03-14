@@ -58,3 +58,38 @@ export interface ElectionResultsResponse {
   success: boolean;
   data: ElectionResultsData;
 }
+
+export interface PartyDetailConstituency {
+  id: number;
+  province: string;
+  districtNumber: number;
+  isClosed: boolean;
+}
+
+export interface PartyDetailCandidate {
+  id: number;
+  candidateNumber: number;
+  title: string;
+  firstName: string;
+  lastName: string;
+  imageUrl: string | null;
+  policy: string;
+  constituency: PartyDetailConstituency;
+  voteCount: number | null;
+  isElected: boolean;
+}
+
+export interface PartyDetail {
+  id: number;
+  name: string;
+  logoUrl: string;
+  policy: string;
+  totalCandidates: number;
+  totalElectedMPs: number;
+  candidates: PartyDetailCandidate[];
+}
+
+export interface PartyDetailResponse {
+  success: boolean;
+  data: PartyDetail;
+}

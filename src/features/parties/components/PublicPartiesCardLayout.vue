@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ref } from 'vue';
+
 interface Props {
   partyName: string;
   description: string;
@@ -8,11 +10,13 @@ interface Props {
   index: number;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 
 const emit = defineEmits<{
   viewMembers: [];
 }>();
+
+const imgFailed = ref(false);
 </script>
 
 <template>
@@ -23,7 +27,18 @@ const emit = defineEmits<{
     <!-- โลโก้ + ชื่อ -->
     <div class="col-profile">
       <div class="logo-wrap">
-        <img :src="logoUrl" :alt="`${partyName} logo`" class="party-logo" />
+        <img
+          v-if="props.logoUrl?.trim() && !imgFailed"
+          :src="props.logoUrl"
+          :alt="`${props.partyName} logo`"
+          class="party-logo"
+          @error="imgFailed = true"
+        />
+        <svg v-else viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5" class="placeholder-icon">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <polyline points="21 15 16 10 5 21"/>
+        </svg>
       </div>
       <span class="party-name">{{ partyName }}</span>
     </div>
@@ -90,6 +105,14 @@ const emit = defineEmits<{
   border-radius: var(--radius-sm, 6px);
   overflow: hidden;
   background-color: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholder-icon {
+  width: 32px;
+  height: 32px;
 }
 
 .party-logo {
