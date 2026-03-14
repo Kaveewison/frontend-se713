@@ -7,7 +7,6 @@ import {
   validateImageFile,
   createImagePreview,
   revokeImagePreview,
-  uploadProfileImage,
 } from '@/utils';
 import type { PartyOverview } from '@/types/dto/election.dto';
 import CommonModal from '@/components/common/CommonModal.vue';
@@ -162,20 +161,17 @@ const handleSubmit = async () => {
   isSubmitting.value = true;
 
   try {
-    let logoUrl = selectedParty.value.logoUrl;
-
-    // If new logo file was selected, upload it first
-    if (editForm.value.logo) {
-      const uploadResponse = await uploadProfileImage(editForm.value.logo);
-      logoUrl = uploadResponse.data.imageUrl;
-    }
-
     // Update party with new data
     await electionStore.updateParty(selectedParty.value.id, {
       name: editForm.value.name,
-      logoUrl: logoUrl,
+      logoUrl: selectedParty.value.logoUrl,
       policy: editForm.value.policy,
     });
+
+    // If new logo file was selected, upload it separately
+    if (editForm.value.logo) {
+      await electionStore.uploadPartyLogo(selectedParty.value.id, editForm.value.logo);
+    }
 
     showSuccess('อัปเดตพรรคสำเร็จ');
     await electionStore.fetchPartyOverview();

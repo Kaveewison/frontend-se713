@@ -140,7 +140,6 @@ export const useElectionStore = defineStore('election', {
         await httpClient.post(
           API_ENDPOINTS.ELECTION.UPLOAD_PARTY_LOGO(partyId),
           formData,
-          { headers: { 'Content-Type': 'multipart/form-data' } },
         );
       } catch (err: any) {
         const errorMessage =
