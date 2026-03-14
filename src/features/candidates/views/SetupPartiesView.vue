@@ -161,16 +161,19 @@ const handleSubmit = async () => {
   isSubmitting.value = true;
 
   try {
-    // Update party with new data
+    // 1. Update party with new data (excluding logo first)
     await electionStore.updateParty(selectedParty.value.id, {
       name: editForm.value.name,
       logoUrl: selectedParty.value.logoUrl,
       policy: editForm.value.policy,
     });
 
-    // If new logo file was selected, upload it separately
+    // 2. If new logo file was selected, upload it
     if (editForm.value.logo) {
-      await electionStore.uploadPartyLogo(selectedParty.value.id, editForm.value.logo);
+      await electionStore.uploadPartyLogo(
+        selectedParty.value.id,
+        editForm.value.logo,
+      );
     }
 
     showSuccess('อัปเดตพรรคสำเร็จ');
@@ -296,10 +299,17 @@ onUnmounted(() => {
             <td data-label="พรรคการเมือง">
               <div class="party-info">
                 <img
-                  :src="party.logoUrl?.trim() || `https://api.dicebear.com/7.x/identicon/svg?seed=${party.name}`"
+                  :src="
+                    party.logoUrl?.trim() ||
+                    `https://api.dicebear.com/7.x/identicon/svg?seed=${party.name}`
+                  "
                   :alt="party.name"
                   class="party-logo"
-                  @error="(e: Event) => ((e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/identicon/svg?seed=${party.name}`)"
+                  @error="
+                    (e: Event) =>
+                      ((e.target as HTMLImageElement).src =
+                        `https://api.dicebear.com/7.x/identicon/svg?seed=${party.name}`)
+                  "
                 />
                 <span class="party-name">{{ party.name }}</span>
               </div>
@@ -348,10 +358,17 @@ onUnmounted(() => {
                 :src="addPreviewUrl"
                 alt="Party logo preview"
               />
-              <svg v-else viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5" class="placeholder-icon">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                <circle cx="8.5" cy="8.5" r="1.5"/>
-                <polyline points="21 15 16 10 5 21"/>
+              <svg
+                v-else
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#cbd5e1"
+                stroke-width="1.5"
+                class="placeholder-icon"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <polyline points="21 15 16 10 5 21" />
               </svg>
             </div>
             <div class="upload-actions">
@@ -417,12 +434,23 @@ onUnmounted(() => {
                 v-if="previewUrl || selectedParty?.logoUrl?.trim()"
                 :src="previewUrl || selectedParty?.logoUrl"
                 :alt="selectedParty?.name || 'Party logo'"
-                @error="(e: Event) => ((e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/identicon/svg?seed=${selectedParty?.name}`)"
+                @error="
+                  (e: Event) =>
+                    ((e.target as HTMLImageElement).src =
+                      `https://api.dicebear.com/7.x/identicon/svg?seed=${selectedParty?.name}`)
+                "
               />
-              <svg v-else viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5" class="placeholder-icon">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                <circle cx="8.5" cy="8.5" r="1.5"/>
-                <polyline points="21 15 16 10 5 21"/>
+              <svg
+                v-else
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#cbd5e1"
+                stroke-width="1.5"
+                class="placeholder-icon"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <polyline points="21 15 16 10 5 21" />
               </svg>
             </div>
             <div class="upload-actions">

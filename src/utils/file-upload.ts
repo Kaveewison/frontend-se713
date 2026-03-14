@@ -3,9 +3,9 @@
  * Handles file uploads with authentication
  */
 
-import { httpClient } from "@/api/client";
-import { API_ENDPOINTS } from "@/api/endpoints";
-import type { UploadProfileImageResponseDTO } from "@/types/dto/auth.dto";
+import { httpClient } from '@/api/client';
+import { API_ENDPOINTS } from '@/api/endpoints';
+import type { UploadProfileImageResponseDTO } from '@/types/dto/auth.dto';
 
 /**
  * Upload profile image
@@ -16,11 +16,16 @@ export async function uploadProfileImage(
   file: File,
 ): Promise<UploadProfileImageResponseDTO> {
   const formData = new FormData();
-  formData.append("image", file);
+  formData.append('image', file);
 
   return httpClient.post<UploadProfileImageResponseDTO>(
     API_ENDPOINTS.AUTH.UPLOAD_PROFILE_IMAGE,
     formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    },
   );
 }
 
@@ -36,16 +41,16 @@ export function validateImageFile(
 ): { valid: boolean; error?: string } {
   // Check file type
   const validTypes = [
-    "image/jpeg",
-    "image/jpg",
-    "image/png",
-    "image/gif",
-    "image/webp",
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/gif',
+    'image/webp',
   ];
   if (!validTypes.includes(file.type)) {
     return {
       valid: false,
-      error: "กรุณาเลือกไฟล์รูปภาพ (JPG, PNG, GIF, WebP)",
+      error: 'กรุณาเลือกไฟล์รูปภาพ (JPG, PNG, GIF, WebP)',
     };
   }
 
