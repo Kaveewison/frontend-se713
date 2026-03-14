@@ -42,15 +42,12 @@ const candidateForms = reactive<Record<number, CandidateForm>>({});
 function initializeForms() {
   users.value.forEach((user) => {
     const profile = user.candidateProfile;
-    if (!candidateForms[user.id]) {
-      candidateForms[user.id] = {
-        // ถ้า candidateProfile ไม่เป็น null → คนนั้นลงสมัครแล้ว
-        isCandidate: !!profile,
-        partyId: profile?.partyId ?? '',
-        policy: profile?.policy ?? '',
-        candidateNumber: profile?.candidateNumber ?? '',
-      };
-    }
+    candidateForms[user.id] = {
+      isCandidate: !!profile,
+      partyId: profile?.partyId ?? '',
+      policy: profile?.policy ?? '',
+      candidateNumber: profile?.candidateNumber ?? '',
+    };
   });
 }
 
@@ -119,20 +116,35 @@ async function handleSubmit(user: User) {
   }
 
   try {
-    // TODO: เชื่อม API สร้าง/อัปเดตผู้สมัคร เมื่อพร้อม
-    // await candidateStore.createCandidate({
-    //   userId: user.id,
-    //   partyId: form.partyId as number,
-    //   constituencyId: user.constituencyId!,
-    //   candidateNumber: form.candidateNumber as number,
-    // });
-    console.log('TODO: createCandidate', { userId: user.id, ...form });
-    showSuccess('ลงสมัครรับเลือกตั้งสำเร็จ (TODO)');
+    const existingProfile = user.candidateProfile;
 
-    form.isCandidate = false;
-    form.partyId = '';
-    form.policy = '';
-    form.candidateNumber = '';
+    if (existingProfile) {
+      const candidateId = existingProfile.id;
+      await candidateStore.updateCandidate(candidateId, {
+        partyId: form.partyId as number,
+        candidateNumber: form.candidateNumber as number,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        policy: form.policy,
+      });
+      showSuccess('อัปเดตข้อมูลผู้สมัครสำเร็จ');
+    } else {
+      await candidateStore.addCandidate({
+        userId: user.id,
+        partyId: form.partyId as number,
+        constituencyId: user.constituencyId!,
+        candidateNumber: form.candidateNumber as number,
+        title: user.title ?? undefined,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        imageUrl: user.imageUrl ?? undefined,
+        policy: form.policy,
+      });
+      showSuccess('ลงสมัครรับเลือกตั้งสำเร็จ');
+    }
+
+    // รีเฟรชข้อมูลผู้ใช้เพื่ออัปเดต candidateProfile
+    await userStore.fetchUsers();
   } catch (error: any) {
     showError(error.message || 'เกิดข้อผิดพลาดในการลงสมัคร');
   }
@@ -278,24 +290,23 @@ onMounted(async () => {
           </div>
 
           <!-- ปุ่มลงสมัคร -->
-          
         </div>
         <div class="form-actions">
-            <button
-              class="btn"
-              :class="
-                candidateForms[user.id].isCandidate
-                  ? 'btn-primary'
-                  : 'btn-disabled'
-              "
-              :disabled="
-                !candidateForms[user.id].isCandidate || candidateStore.isLoading
-              "
-              @click="handleSubmit(user)"
-            >
-              ลงสมัคร
-            </button>
-          </div>
+          <button
+            class="btn"
+            :class="
+              candidateForms[user.id].isCandidate
+                ? 'btn-primary'
+                : 'btn-disabled'
+            "
+            :disabled="
+              !candidateForms[user.id].isCandidate || candidateStore.isLoading
+            "
+            @click="handleSubmit(user)"
+          >
+            ลงสมัคร
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -333,8 +344,6 @@ onMounted(async () => {
   display: flex;
   gap: 1rem;
 }
-
-
 
 .search-box {
   position: relative;
@@ -547,7 +556,6 @@ onMounted(async () => {
 }
 
 .form-actions {
-  
   margin-bottom: 1px;
 }
 

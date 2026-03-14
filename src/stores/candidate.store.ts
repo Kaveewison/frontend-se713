@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { httpClient } from "@/api/client";
 import { API_ENDPOINTS } from "@/api/endpoints";
 import type { Candidate } from "@/types/models";
-import type { CreateCandidateDTO, UpdateCandidateDTO } from "@/types/dto";
+import type { AddCandidateDTO, CreateCandidateDTO, UpdateCandidateDTO } from "@/types/dto";
 import type { SuccessResponse } from "@/types/api";
 
 export const useCandidateStore = defineStore("candidate", {
@@ -115,6 +115,25 @@ export const useCandidateStore = defineStore("candidate", {
       }
     },
 
+    async addCandidate(data: AddCandidateDTO): Promise<Candidate> {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const newCandidate = await httpClient.post<Candidate>(
+          API_ENDPOINTS.ELECTION.ADD_CANDIDATE,
+          data,
+        );
+        this.candidates.push(newCandidate);
+        return newCandidate;
+      } catch (err: any) {
+        this.error = err.message || "เกิดข้อผิดพลาดในการเพิ่มผู้สมัคร";
+        throw err;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
     async createCandidate(data: CreateCandidateDTO): Promise<Candidate> {
       this.isLoading = true;
       this.error = null;
@@ -143,7 +162,7 @@ export const useCandidateStore = defineStore("candidate", {
 
       try {
         const updatedCandidate = await httpClient.put<Candidate>(
-          API_ENDPOINTS.CANDIDATES.BY_ID(id),
+          API_ENDPOINTS.ELECTION.UPDATE_CANDIDATE(id),
           data,
         );
 

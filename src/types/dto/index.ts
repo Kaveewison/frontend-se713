@@ -2,7 +2,7 @@
 export type { LoginDTO, RegistrationDTO, AuthResponseDTO } from "./auth.dto";
 
 // Candidate DTOs
-export type { CreateCandidateDTO, UpdateCandidateDTO } from "./candidate.dto";
+export type { AddCandidateDTO, CreateCandidateDTO, UpdateCandidateDTO } from "./candidate.dto";
 
 // Constituency DTOs
 export type {

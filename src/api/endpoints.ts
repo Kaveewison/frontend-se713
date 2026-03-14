@@ -34,6 +34,8 @@ export const API_ENDPOINTS = {
     UPLOAD_PARTY_LOGO: (id: number) => `/election/party/${id}/logo`,
 
     ELECTION_RESULTS: (id: number) => `/election/constituency/${id}`,
+    ADD_CANDIDATE: '/election/candidate',
+    UPDATE_CANDIDATE: (id: number) => `/election/candidate/${id}`,
   },
 
   // Parties
