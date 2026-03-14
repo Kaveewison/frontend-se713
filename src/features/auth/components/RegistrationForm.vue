@@ -4,13 +4,7 @@ import { storeToRefs } from 'pinia';
 import { useAuthStore } from '@/stores';
 import { useToast } from '@/composables/useToast';
 import { useForm, type ValidationRule } from '@/composables/useForm';
-import {
-  validateRequired,
-  validateCitizenId,
-  validatePhoneNumber,
-  validateEmail,
-  validatePassword,
-} from '@/utils/validators';
+import { validateRequired, validateCitizenId } from '@/utils/validators';
 import type { RegistrationDTO } from '@/types/dto';
 import provinces from '@/datas/provinces.json';
 import { httpClient } from '@/api/client';
@@ -28,12 +22,6 @@ interface ConstituencyItem {
 }
 
 interface FormFields extends RegistrationDTO {
-  firstName: string;
-  lastName: string;
-  idNumber: string;
-  backCardNumber: string;
-  address: string;
-  province: string;
   electoralDistrict: string;
 }
 
@@ -43,9 +31,10 @@ const { showSuccess: showSuccessToast, showError } = useToast();
 const showSuccessState = ref(false);
 
 // Dropdown options
-const provinceOptions: DropdownOption[] = provinces.map((p) => ({ label: p.name_th, value: p.name_th }));
-
-
+const provinceOptions: DropdownOption[] = provinces.map((p) => ({
+  label: p.name_th,
+  value: p.name_th,
+}));
 
 const districtOptions = ref<DropdownOption[]>([]);
 const isLoadingDistricts = ref(false);
@@ -55,17 +44,25 @@ const fetchDistricts = async (province: string): Promise<void> => {
     districtOptions.value = [];
     return;
   }
+
   isLoadingDistricts.value = true;
   try {
-    const res = await httpClient.get<{ success: boolean; data: ConstituencyItem[] }>(
-      API_ENDPOINTS.CONSTITUENCIES.BY_PROVINCE(province)
-    );
+    const res = await httpClient.get<{
+      success: boolean;
+      data: ConstituencyItem[];
+    }>(API_ENDPOINTS.CONSTITUENCIES.BY_PROVINCE(province));
     if (res.data.length === 0) {
-      districtOptions.value = [{ label: 'ยังไม่มีเขตเลือกตั้ง', value: '__no_district__', disabled: true }];
+      districtOptions.value = [
+        {
+          label: 'ยังไม่มีเขตเลือกตั้ง',
+          value: '__no_district__',
+          disabled: true,
+        },
+      ];
     } else {
       districtOptions.value = res.data.map((c) => ({
         label: `เขต ${c.districtNumber}`,
-        value: String(c.id),
+        value: String(c.districtNumber),
       }));
     }
   } catch {
@@ -77,72 +74,41 @@ const fetchDistricts = async (province: string): Promise<void> => {
 
 // Define validation rules separately to avoid circular reference
 const validationRules: Partial<Record<keyof FormFields, ValidationRule[]>> = {
-  firstName: [
-    (v: string) => validateRequired(v, 'ชื่อ').error,
-  ],
-  lastName: [
-    (v: string) => validateRequired(v, 'นามสกุล').error,
-  ],
-  idNumber: [
+  firstName: [(v: string) => validateRequired(v, 'ชื่อ').error],
+  lastName: [(v: string) => validateRequired(v, 'นามสกุล').error],
+  nationalId: [
     (v: string) => validateRequired(v, 'หมายเลขประจำตัว').error,
     (v: string) => validateCitizenId(v).error,
   ],
-  backCardNumber: [
-    (v: string) => validateRequired(v, 'เลขหลังบัตร').error,
-  ],
-  address: [
-    (v: string) => validateRequired(v, 'ที่อยู่').error,
-  ],
-  province: [
-    (v: string) => validateRequired(v, 'จังหวัด').error,
-  ],
-  electoralDistrict: [
-    (v: string) => validateRequired(v, 'เขตเลือกตั้ง').error,
-  ],
-  email: [
-    (v: string) => validateRequired(v, 'อีเมล').error,
-    (v: string) => validateEmail(v).error,
-  ],
-  password: [
-    (v: string) => validateRequired(v, 'รหัสผ่าน').error,
-    (v: string) => validatePassword(v).error,
-  ],
-  phoneNumber: [
-    (v: string) => validateRequired(v, 'เบอร์โทรศัพท์').error,
-    (v: string) => validatePhoneNumber(v).error,
-  ],
+  laserCode: [(v: string) => validateRequired(v, 'เลขหลังบัตร').error],
+  address: [(v: string) => validateRequired(v, 'ที่อยู่').error],
+  province: [(v: string) => validateRequired(v, 'จังหวัด').error],
+  electoralDistrict: [(v: string) => validateRequired(v, 'เขตเลือกตั้ง').error],
 };
 
 // Initialize form with useForm composable
 const formState = useForm<FormFields>({
   initialValues: {
-    // DTO fields
-    citizenId: '',
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    phoneNumber: '',
-    constituencyId: 0,
-    // UI-only fields
+    nationalId: '',
+    laserCode: '',
     firstName: '',
     lastName: '',
-    idNumber: '',
-    backCardNumber: '',
     address: '',
     province: '',
+    districtNumber: 0,
+    // UI-only fields
     electoralDistrict: '',
   },
   validationRules,
 });
 
-const { formData, errors, validateField, validateForm, resetForm: resetFormData } = formState;
-
-// Add confirmPassword validation after form is created
-validationRules.confirmPassword = [
-  (v: string) => validateRequired(v, 'ยืนยันรหัสผ่าน').error,
-  (v: string) => v === formData.value.password ? null : 'รหัสผ่านไม่ตรงกัน',
-];
+const {
+  formData,
+  errors,
+  validateField,
+  validateForm,
+  resetForm: resetFormData,
+} = formState;
 
 // Track touched fields for showing errors only after user interaction
 const touched = ref<Record<string, boolean>>({});
@@ -153,62 +119,64 @@ const touch = (field: string): void => {
 };
 
 // เมื่อเปลี่ยนจังหวัด ให้ reset เขตและดึงใหม่
-watch(() => formData.value.province, (newProvince) => {
-  formData.value.electoralDistrict = '';
-  districtOptions.value = [];
-  if (newProvince) {
-    fetchDistricts(newProvince);
-  }
-});
+watch(
+  () => formData.value.province,
+  (newProvince) => {
+    formData.value.electoralDistrict = '';
+    districtOptions.value = [];
+    if (newProvince) {
+      fetchDistricts(newProvince);
+    }
+  },
+);
 
 // Sync UI fields to DTO fields
 const syncToDTO = (): void => {
-  // Sync name
-  const fullName = `${formData.value.firstName} ${formData.value.lastName}`.trim();
-  formData.value.name = fullName;
-
-  // Sync citizenId
-  formData.value.citizenId = formData.value.idNumber;
-
   // Sync constituencyId จาก electoralDistrict (value คือ id ของ constituency จาก API)
-  formData.value.constituencyId = parseInt(formData.value.electoralDistrict) || 0;
-
-  // Set default values for fields not in UI (to maintain UI compatibility)
-  // In a real implementation, these would be collected from additional form fields
-  if (!formData.value.email) {
-    formData.value.email = `user${formData.value.citizenId}@example.com`;
-  }
-  if (!formData.value.password) {
-    formData.value.password = 'TempPass123';
-    formData.value.confirmPassword = 'TempPass123';
-  }
-  if (!formData.value.phoneNumber) {
-    formData.value.phoneNumber = '0800000000';
-  }
+  formData.value.districtNumber =
+    parseInt(formData.value.electoralDistrict) || 0;
 };
 
 const onIdNumberInput = (): void => {
   // Strip non-numeric characters
-  formData.value.idNumber = formData.value.idNumber.replace(/\D/g, '');
+  formData.value.nationalId = formData.value.nationalId.replace(/\D/g, '');
 };
 
 // Step completion based on filled fields
 const isStep1Complete = computed(() => {
-  return !!(formData.value.firstName && formData.value.lastName && formData.value.idNumber && formData.value.backCardNumber);
+  return !!(
+    formData.value.firstName &&
+    formData.value.lastName &&
+    formData.value.nationalId &&
+    formData.value.laserCode
+  );
 });
 
 const isStep2Complete = computed(() => {
-  return isStep1Complete.value && !!(formData.value.address && formData.value.province && formData.value.electoralDistrict);
+  return (
+    isStep1Complete.value &&
+    !!(
+      formData.value.address &&
+      formData.value.province &&
+      formData.value.electoralDistrict
+    )
+  );
 });
 
 const onSubmit = async (): Promise<void> => {
   // Touch all fields to show validation errors
   const allFields = [
-    'firstName', 'lastName', 'idNumber', 'backCardNumber',
-    'address', 'province', 'electoralDistrict',
-    'email', 'password', 'confirmPassword', 'phoneNumber'
+    'firstName',
+    'lastName',
+    'nationalId',
+    'laserCode',
+    'address',
+    'province',
+    'electoralDistrict',
   ];
-  allFields.forEach(f => { touched.value[f] = true; });
+  allFields.forEach((f) => {
+    touched.value[f] = true;
+  });
 
   // Validate all fields
   if (!validateForm()) {
@@ -220,13 +188,13 @@ const onSubmit = async (): Promise<void> => {
 
   // Create DTO for registration
   const registrationData: RegistrationDTO = {
-    citizenId: formData.value.citizenId,
-    name: formData.value.name,
-    email: formData.value.email,
-    password: formData.value.password,
-    confirmPassword: formData.value.confirmPassword,
-    phoneNumber: formData.value.phoneNumber,
-    constituencyId: formData.value.constituencyId,
+    nationalId: formData.value.nationalId,
+    laserCode: formData.value.laserCode,
+    firstName: formData.value.firstName,
+    lastName: formData.value.lastName,
+    address: formData.value.address,
+    province: formData.value.province,
+    districtNumber: formData.value.districtNumber,
   };
 
   // Call register from auth store with try-catch for error handling
@@ -250,21 +218,31 @@ const form = formData;
 </script>
 
 <template>
-  <div class="form-container delay-fade-in" :class="{ 'form-success-state': showSuccessState }">
-
+  <div
+    class="form-container delay-fade-in"
+    :class="{ 'form-success-state': showSuccessState }"
+  >
     <!-- Success Overlay -->
     <transition name="success-transition">
       <div v-if="showSuccessState" class="success-overlay">
         <div class="success-content">
           <div class="success-icon-ring">
             <svg class="success-checkmark" viewBox="0 0 52 52">
-              <circle class="checkmark-circle" cx="26" cy="26" r="24" fill="none" />
+              <circle
+                class="checkmark-circle"
+                cx="26"
+                cy="26"
+                r="24"
+                fill="none"
+              />
               <path class="checkmark-check" fill="none" d="M14 27l7 7 16-16" />
             </svg>
           </div>
           <h3 class="success-title">ลงทะเบียนสำเร็จ!</h3>
           <p class="success-message">ข้อมูลของท่านถูกบันทึกเรียบร้อยแล้ว</p>
-          <button class="btn-secondary" @click="resetForm">ลงทะเบียนใหม่</button>
+          <button class="btn-secondary" @click="resetForm">
+            ลงทะเบียนใหม่
+          </button>
         </div>
       </div>
     </transition>
@@ -276,7 +254,9 @@ const form = formData;
           <span class="logo-icon">🗳️</span>
         </div>
         <h2 class="title">สมัครสร้างรายชื่อผู้ใช้งาน</h2>
-        <p class="subtitle">กรอกหมายเลขประจำตัว 13 หลัก และข้อมูลส่วนตัวเพื่อลงทะเบียนเข้าใช้ระบบ</p>
+        <p class="subtitle">
+          กรอกหมายเลขประจำตัว 13 หลัก และข้อมูลส่วนตัวเพื่อลงทะเบียนเข้าใช้ระบบ
+        </p>
       </div>
 
       <!-- Step Indicator -->
@@ -286,7 +266,10 @@ const form = formData;
           <span class="step-label">ข้อมูลส่วนตัว</span>
         </div>
         <div class="step-line" :class="{ filled: isStep1Complete }"></div>
-        <div class="step" :class="{ active: isStep1Complete, completed: isStep2Complete }">
+        <div
+          class="step"
+          :class="{ active: isStep1Complete, completed: isStep2Complete }"
+        >
           <div class="step-dot">2</div>
           <span class="step-label">ที่อยู่</span>
         </div>
@@ -302,54 +285,134 @@ const form = formData;
         <div class="form-section">
           <div class="section-label">ข้อมูลส่วนตัว</div>
           <div class="form-row flex-row">
-            <CommonInput id="reg-firstName" v-model="form.firstName" label="ชื่อ" placeholder="ชื่อจริง" :icon="User"
-              :required="true" :error="errors.firstName" :touched="touched.firstName" @blur="touch('firstName')" />
-            <CommonInput id="reg-lastName" v-model="form.lastName" label="นามสกุล" placeholder="นามสกุล" :icon="User"
-              :required="true" :error="errors.lastName" :touched="touched.lastName" @blur="touch('lastName')" />
+            <CommonInput
+              id="reg-firstName"
+              v-model="form.firstName"
+              label="ชื่อ"
+              placeholder="ชื่อจริง"
+              :icon="User"
+              :required="true"
+              :error="errors.firstName"
+              :touched="touched.firstName"
+              @blur="touch('firstName')"
+            />
+            <CommonInput
+              id="reg-lastName"
+              v-model="form.lastName"
+              label="นามสกุล"
+              placeholder="นามสกุล"
+              :icon="User"
+              :required="true"
+              :error="errors.lastName"
+              :touched="touched.lastName"
+              @blur="touch('lastName')"
+            />
           </div>
         </div>
 
         <!-- Row 2: ID -->
         <div class="form-row flex-row">
-          <CommonInput id="reg-idNumber" v-model="form.idNumber" label="หมายเลขประจำตัว 13 หลัก"
-            placeholder="X-XXXX-XXXXX-XX-X" :icon="CreditCard" :required="true" :maxlength="13" :show-char-count="true"
-            :error="errors.idNumber" :touched="touched.idNumber" @blur="touch('idNumber')" @input="onIdNumberInput" />
-          <CommonInput id="reg-backCard" v-model="form.backCardNumber" label="เลขหลังบัตร"
-            placeholder="เลขหลังบัตรประชาชน" :icon="CreditCard" :required="true" :error="errors.backCardNumber"
-            :touched="touched.backCardNumber" @blur="touch('backCardNumber')" />
+          <CommonInput
+            id="reg-idNumber"
+            v-model="form.nationalId"
+            label="หมายเลขประจำตัว 13 หลัก"
+            placeholder="X-XXXX-XXXXX-XX-X"
+            :icon="CreditCard"
+            :required="true"
+            :maxlength="13"
+            :show-char-count="true"
+            :error="errors.nationalId"
+            :touched="touched.nationalId"
+            @blur="touch('nationalId')"
+            @input="onIdNumberInput"
+          />
+          <CommonInput
+            id="reg-backCard"
+            v-model="form.laserCode"
+            label="เลขหลังบัตร"
+            placeholder="เลขหลังบัตรประชาชน"
+            :icon="CreditCard"
+            :required="true"
+            :error="errors.laserCode"
+            :touched="touched.laserCode"
+            @blur="touch('laserCode')"
+          />
         </div>
 
         <!-- Row 3: Address -->
         <div class="form-section">
           <div class="section-label">ที่อยู่ตามทะเบียนบ้าน</div>
           <div class="form-row">
-            <CommonInput id="reg-address" v-model="form.address" label="ที่อยู่"
-              placeholder="บ้านเลขที่ ถนน ตำบล/แขวง อำเภอ/เขต" :icon="Home" :required="true" :error="errors.address"
-              :touched="touched.address" @blur="touch('address')" />
+            <CommonInput
+              id="reg-address"
+              v-model="form.address"
+              label="ที่อยู่"
+              placeholder="บ้านเลขที่ ถนน ตำบล/แขวง อำเภอ/เขต"
+              :icon="Home"
+              :required="true"
+              :error="errors.address"
+              :touched="touched.address"
+              @blur="touch('address')"
+            />
           </div>
         </div>
 
         <!-- Row 4: Province & District -->
         <div class="form-row flex-row">
-          <CommonDropdown id="reg-province" v-model="form.province" label="จังหวัด" placeholder="เลือกจังหวัด"
-            :icon="MapPin" :required="true" :options="provinceOptions" :error="errors.province"
-            :touched="touched.province" @blur="touch('province')" @change="touch('province')" />
-          <CommonDropdown id="reg-district" v-model="form.electoralDistrict" label="เขตการเลือกตั้ง"
-            :placeholder="isLoadingDistricts ? 'กำลังโหลด...' : !form.province ? 'เลือกจังหวัดก่อน' : 'เลือกเขตเลือกตั้ง'"
-            :icon="Shield" :required="true" :options="districtOptions"
+          <CommonDropdown
+            id="reg-province"
+            v-model="form.province"
+            label="จังหวัด"
+            placeholder="เลือกจังหวัด"
+            :icon="MapPin"
+            :required="true"
+            :options="provinceOptions"
+            :error="errors.province"
+            :touched="touched.province"
+            @blur="touch('province')"
+            @change="touch('province')"
+          />
+          <CommonDropdown
+            id="reg-district"
+            v-model="form.electoralDistrict"
+            label="เขตการเลือกตั้ง"
+            :placeholder="
+              isLoadingDistricts
+                ? 'กำลังโหลด...'
+                : !form.province
+                  ? 'เลือกจังหวัดก่อน'
+                  : 'เลือกเขตเลือกตั้ง'
+            "
+            :icon="Shield"
+            :required="true"
+            :options="districtOptions"
             :disabled="!form.province || isLoadingDistricts"
-            :error="errors.electoralDistrict" :touched="touched.electoralDistrict" @blur="touch('electoralDistrict')"
-            @change="touch('electoralDistrict')" />
+            :error="errors.electoralDistrict"
+            :touched="touched.electoralDistrict"
+            @blur="touch('electoralDistrict')"
+            @change="touch('electoralDistrict')"
+          />
         </div>
 
         <!-- Submit Button with Loading State -->
         <div class="form-actions">
-          <button type="submit" class="submit-btn" :disabled="isLoading" :class="{ 'btn-loading': isLoading }">
+          <button
+            type="submit"
+            class="submit-btn"
+            :disabled="isLoading"
+            :class="{ 'btn-loading': isLoading }"
+          >
             <span v-if="isLoading" class="btn-spinner"></span>
             <span v-if="isLoading">กำลังดำเนินการ...</span>
             <span v-else class="btn-content">
               <span>สมัครใช้งาน</span>
-              <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg
+                class="btn-arrow"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
                 <line x1="5" y1="12" x2="19" y2="12" />
                 <polyline points="12,5 19,12 12,19" />
               </svg>
@@ -358,7 +421,8 @@ const form = formData;
         </div>
 
         <p class="terms-text">
-          การสมัครใช้งานแสดงว่าท่านยอมรับ <a href="#">ข้อกำหนดและเงื่อนไข</a> ของระบบ
+          การสมัครใช้งานแสดงว่าท่านยอมรับ
+          <a href="#">ข้อกำหนดและเงื่อนไข</a> ของระบบ
         </p>
 
         <!-- Divider -->
@@ -372,7 +436,13 @@ const form = formData;
         <div class="login-section">
           <p class="login-text">มีบัญชีอยู่แล้ว?</p>
           <router-link to="/login" class="login-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="login-icon">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              class="login-icon"
+            >
               <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4" />
               <polyline points="10,17 15,12 10,7" />
               <line x1="15" y1="12" x2="3" y2="12" />
@@ -393,7 +463,9 @@ const form = formData;
   background: var(--bg-card);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-md);
-  transition: transform var(--transition-slow), box-shadow var(--transition-slow);
+  transition:
+    transform var(--transition-slow),
+    box-shadow var(--transition-slow);
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(0, 0, 0, 0.04);
@@ -607,7 +679,7 @@ label {
   padding-left: 2.6rem;
 }
 
-.input-wrapper input:focus+.input-icon,
+.input-wrapper input:focus + .input-icon,
 .input-wrapper:focus-within .input-icon {
   color: var(--primary);
 }
@@ -741,7 +813,12 @@ select:focus {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+  background: linear-gradient(
+    135deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 70%
+  );
   transform: translateX(-100%);
   transition: transform 0.6s ease;
 }

@@ -3,8 +3,6 @@ import { httpClient } from "@/api/client";
 import { API_ENDPOINTS } from "@/api/endpoints";
 import { tokenManager } from "@/utils/token-manager";
 import {
-  validateEmail,
-  validatePassword,
   validateCitizenId,
 } from "@/utils/validators";
 import type { User } from "@/types/models";
@@ -80,20 +78,6 @@ export const useAuthStore = defineStore("auth", {
       this.error = null;
 
       try {
-        // Validate email format
-        const emailValidation = validateEmail(data.email);
-        if (!emailValidation.isValid) {
-          throw new Error(emailValidation.error || "รูปแบบอีเมลไม่ถูกต้อง");
-        }
-
-        // Validate password strength
-        const passwordValidation = validatePassword(data.password);
-        if (!passwordValidation.isValid) {
-          throw new Error(
-            passwordValidation.error || "รหัสผ่านไม่ตรงตามเงื่อนไข",
-          );
-        }
-
         await httpClient.post<{ success: boolean; message: string }>(
           API_ENDPOINTS.AUTH.REGISTER,
           data,

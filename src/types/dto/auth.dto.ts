@@ -6,13 +6,13 @@ export interface LoginDTO {
 }
 
 export interface RegistrationDTO {
-  citizenId: string;
-  name: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-  phoneNumber: string;
-  constituencyId: number;
+  nationalId: string;
+  laserCode: string;
+  firstName: string;
+  lastName: string;
+  address: string;
+  province: string;
+  districtNumber: number;
 }
 
 export interface AuthResponseDTO {
