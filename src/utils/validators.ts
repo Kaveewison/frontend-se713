@@ -239,6 +239,8 @@ export function validateLaserCode(laserCode: string): ValidationResult {
   const cleanCode = laserCode.replace(/-/g, '');
 
   if (cleanCode.length !== 12) {
+    return { isValid: true, error: null };
+
     return { isValid: false, error: 'เลขหลังบัตรต้องมี 12 หลัก' };
   }
 

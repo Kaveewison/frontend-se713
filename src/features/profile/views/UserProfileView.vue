@@ -15,6 +15,7 @@ import type { UpdateUserDTO } from '@/types/dto/user.dto';
 import BaseButton from '@/components/common/BaseButton.vue';
 import BaseFormGroup from '@/components/common/BaseFormGroup.vue';
 import CommonInput from '@/components/common/CommonInput.vue';
+import CommonDropdown from '@/components/common/CommonDropdown.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -30,6 +31,7 @@ const previewUrl = ref<string | null>(null);
 const selectedFile = ref<File | null>(null);
 
 const formData = reactive({
+  title: '' as string,
   firstName: '',
   lastName: '',
   address: '',
@@ -37,6 +39,7 @@ const formData = reactive({
 
 const initializeFormData = () => {
   if (selectedUser.value) {
+    formData.title = selectedUser.value.title || '';
     formData.firstName = selectedUser.value.firstName || '';
     formData.lastName = selectedUser.value.lastName || '';
     formData.address = selectedUser.value.address || '';
@@ -104,6 +107,7 @@ const handleSave = async () => {
     }
 
     const updateData: UpdateUserDTO = {
+      title: formData.title || undefined,
       firstName: formData.firstName,
       lastName: formData.lastName,
       address: formData.address,
@@ -192,25 +196,41 @@ onUnmounted(() => {
         </div>
 
         <div class="form-grid">
-          <BaseFormGroup label="ชื่อ" for="firstName">
-            <CommonInput
-              id="firstName"
-              v-model="formData.firstName"
-              type="text"
-              placeholder="ชื่อ"
-              :disabled="!isEditMode"
-            />
-          </BaseFormGroup>
+          <div class="full-width name-row">
+            <BaseFormGroup label="คำนำหน้า" for="title">
+              <CommonDropdown
+                id="title"
+                v-model="formData.title"
+                placeholder="เลือกคำนำหน้า"
+                :options="[
+                  { label: 'นาย', value: 'นาย' },
+                  { label: 'นาง', value: 'นาง' },
+                  { label: 'นางสาว', value: 'นางสาว' },
+                ]"
+                :disabled="!isEditMode"
+              />
+            </BaseFormGroup>
 
-          <BaseFormGroup label="นามสกุล" for="lastName">
-            <CommonInput
-              id="lastName"
-              v-model="formData.lastName"
-              type="text"
-              placeholder="นามสกุล"
-              :disabled="!isEditMode"
-            />
-          </BaseFormGroup>
+            <BaseFormGroup label="ชื่อ" for="firstName">
+              <CommonInput
+                id="firstName"
+                v-model="formData.firstName"
+                type="text"
+                placeholder="ชื่อ"
+                :disabled="!isEditMode"
+              />
+            </BaseFormGroup>
+
+            <BaseFormGroup label="นามสกุล" for="lastName">
+              <CommonInput
+                id="lastName"
+                v-model="formData.lastName"
+                type="text"
+                placeholder="นามสกุล"
+                :disabled="!isEditMode"
+              />
+            </BaseFormGroup>
+          </div>
 
           <BaseFormGroup label="หมายเลขประจำตัว 13 หลัก" for="nationalId">
             <CommonInput
@@ -387,6 +407,18 @@ onUnmounted(() => {
 
 .full-width {
   grid-column: 1 / -1;
+}
+
+.name-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 600px) {
+  .name-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 .ml-auto {

@@ -101,6 +101,7 @@ const formState = useForm<FormFields>({
   initialValues: {
     nationalId: '',
     laserCode: '',
+    title: '',
     firstName: '',
     lastName: '',
     address: '',
@@ -165,6 +166,7 @@ const onSubmit = async (): Promise<void> => {
   const registrationData: RegistrationDTO = {
     nationalId: formData.value.nationalId,
     laserCode: formData.value.laserCode,
+    title: formData.value.title || undefined,
     firstName: formData.value.firstName,
     lastName: formData.value.lastName,
     address: formData.value.address,
@@ -254,7 +256,19 @@ const form = formData;
         <!-- Row 1: Name -->
         <div class="form-section">
           <div class="section-label">ข้อมูลส่วนตัว</div>
-          <div class="form-row flex-row">
+          <div class="name-grid">
+            <CommonDropdown
+              id="reg-title"
+              v-model="form.title"
+              label="คำนำหน้า"
+              placeholder="เลือกคำนำหน้า"
+              :icon="User"
+              :options="[
+                { label: 'นาย', value: 'นาย' },
+                { label: 'นาง', value: 'นาง' },
+                { label: 'นางสาว', value: 'นางสาว' },
+              ]"
+            />
             <CommonInput
               id="reg-firstName"
               v-model="form.firstName"
@@ -605,9 +619,19 @@ const form = formData;
   flex-direction: row;
 }
 
+.name-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+}
+
 @media (max-width: 600px) {
   .flex-row {
     flex-direction: column;
+  }
+  
+  .name-grid {
+    grid-template-columns: 1fr;
   }
 
   .step-label {

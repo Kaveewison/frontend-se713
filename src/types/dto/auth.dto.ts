@@ -8,6 +8,7 @@ export interface LoginDTO {
 export interface RegistrationDTO {
   nationalId: string;
   laserCode: string;
+  title?: string;
   firstName: string;
   lastName: string;
   address: string;

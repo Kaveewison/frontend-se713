@@ -11,6 +11,7 @@ export interface CreateUserDTO {
 }
 
 export interface UpdateUserDTO {
+  title?: string;
   firstName?: string;
   lastName?: string;
   address?: string;
