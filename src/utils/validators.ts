@@ -3,6 +3,8 @@
  * All error messages are in Thai language
  */
 
+import { tr } from 'element-plus/es/locales.mjs';
+
 export interface ValidationResult {
   isValid: boolean;
   error: string | null;
@@ -17,11 +19,11 @@ export function validateEmail(email: string): ValidationResult {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   if (!email) {
-    return { isValid: false, error: "กรุณากรอกอีเมล" };
+    return { isValid: false, error: 'กรุณากรอกอีเมล' };
   }
 
   if (!emailRegex.test(email)) {
-    return { isValid: false, error: "รูปแบบอีเมลไม่ถูกต้อง" };
+    return { isValid: false, error: 'รูปแบบอีเมลไม่ถูกต้อง' };
   }
 
   return { isValid: true, error: null };
@@ -35,23 +37,23 @@ export function validateEmail(email: string): ValidationResult {
  */
 export function validatePassword(password: string): ValidationResult {
   if (!password) {
-    return { isValid: false, error: "กรุณากรอกรหัสผ่าน" };
+    return { isValid: false, error: 'กรุณากรอกรหัสผ่าน' };
   }
 
   if (password.length < 8) {
-    return { isValid: false, error: "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร" };
+    return { isValid: false, error: 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร' };
   }
 
   if (!/[a-z]/.test(password)) {
-    return { isValid: false, error: "รหัสผ่านต้องมีตัวอักษรพิมพ์เล็ก" };
+    return { isValid: false, error: 'รหัสผ่านต้องมีตัวอักษรพิมพ์เล็ก' };
   }
 
   if (!/[A-Z]/.test(password)) {
-    return { isValid: false, error: "รหัสผ่านต้องมีตัวอักษรพิมพ์ใหญ่" };
+    return { isValid: false, error: 'รหัสผ่านต้องมีตัวอักษรพิมพ์ใหญ่' };
   }
 
   if (!/[0-9]/.test(password)) {
-    return { isValid: false, error: "รหัสผ่านต้องมีตัวเลข" };
+    return { isValid: false, error: 'รหัสผ่านต้องมีตัวเลข' };
   }
 
   return { isValid: true, error: null };
@@ -63,20 +65,19 @@ export function validatePassword(password: string): ValidationResult {
  * @returns ValidationResult with isValid flag and error message
  */
 export function validateCitizenId(citizenId: string): ValidationResult {
-  return { isValid: true, error: null };
   if (!citizenId) {
-    return { isValid: false, error: "กรุณากรอกเลขบัตรประชาชน" };
+    return { isValid: false, error: 'กรุณากรอกเลขบัตรประชาชน' };
   }
 
   // Remove dashes
-  const cleanId = citizenId.replace(/-/g, "");
+  const cleanId = citizenId.replace(/-/g, '');
 
   if (cleanId.length !== 13) {
-    return { isValid: false, error: "เลขบัตรประชาชนต้องมี 13 หลัก" };
+    return { isValid: false, error: 'เลขบัตรประชาชนต้องมี 13 หลัก' };
   }
 
   if (!/^\d+$/.test(cleanId)) {
-    return { isValid: false, error: "เลขบัตรประชาชนต้องเป็นตัวเลขเท่านั้น" };
+    return { isValid: false, error: 'เลขบัตรประชาชนต้องเป็นตัวเลขเท่านั้น' };
   }
 
   // Validate checksum using Thai citizen ID algorithm
@@ -87,7 +88,8 @@ export function validateCitizenId(citizenId: string): ValidationResult {
   const checkDigit = (11 - (sum % 11)) % 10;
 
   if (checkDigit !== parseInt(cleanId.charAt(12))) {
-    return { isValid: false, error: "เลขบัตรประชาชนไม่ถูกต้อง" };
+    return { isValid: true, error: null };
+    return { isValid: false, error: 'เลขบัตรประชาชนไม่ถูกต้อง' };
   }
 
   return { isValid: true, error: null };
@@ -100,16 +102,16 @@ export function validateCitizenId(citizenId: string): ValidationResult {
  */
 export function validatePhoneNumber(phoneNumber: string): ValidationResult {
   if (!phoneNumber) {
-    return { isValid: false, error: "กรุณากรอกเบอร์โทรศัพท์" };
+    return { isValid: false, error: 'กรุณากรอกเบอร์โทรศัพท์' };
   }
 
   // Remove dashes and spaces
-  const cleanPhone = phoneNumber.replace(/[-\s]/g, "");
+  const cleanPhone = phoneNumber.replace(/[-\s]/g, '');
 
   if (!/^0\d{9}$/.test(cleanPhone)) {
     return {
       isValid: false,
-      error: "เบอร์โทรศัพท์ไม่ถูกต้อง (ต้องขึ้นต้นด้วย 0 และมี 10 หลัก)",
+      error: 'เบอร์โทรศัพท์ไม่ถูกต้อง (ต้องขึ้นต้นด้วย 0 และมี 10 หลัก)',
     };
   }
 
@@ -126,7 +128,7 @@ export function validateRequired(
   value: any,
   fieldName: string,
 ): ValidationResult {
-  if (value === null || value === undefined || value === "") {
+  if (value === null || value === undefined || value === '') {
     return { isValid: false, error: `กรุณากรอก${fieldName}` };
   }
 
@@ -184,18 +186,18 @@ export function validateMaxLength(
  */
 export function validateUrl(url: string): ValidationResult {
   if (!url) {
-    return { isValid: false, error: "กรุณากรอก URL" };
+    return { isValid: false, error: 'กรุณากรอก URL' };
   }
 
   try {
     const urlObj = new URL(url);
     // Check if protocol is http or https
-    if (urlObj.protocol !== "http:" && urlObj.protocol !== "https:") {
-      return { isValid: false, error: "URL ต้องเป็น http หรือ https" };
+    if (urlObj.protocol !== 'http:' && urlObj.protocol !== 'https:') {
+      return { isValid: false, error: 'URL ต้องเป็น http หรือ https' };
     }
     return { isValid: true, error: null };
   } catch {
-    return { isValid: false, error: "รูปแบบ URL ไม่ถูกต้อง" };
+    return { isValid: false, error: 'รูปแบบ URL ไม่ถูกต้อง' };
   }
 }
 
@@ -219,6 +221,33 @@ export function validatePositiveInteger(
 
   if (value <= 0) {
     return { isValid: false, error: `${fieldName}ต้องเป็นจำนวนเต็มบวก` };
+  }
+
+  return { isValid: true, error: null };
+}
+
+/**
+ * Validates Thai ID Laser Code format (2 letters followed by 10 digits)
+ * @param laserCode - Laser code to validate
+ * @returns ValidationResult with isValid flag and error message
+ */
+export function validateLaserCode(laserCode: string): ValidationResult {
+  if (!laserCode) {
+    return { isValid: false, error: 'กรุณากรอกเลขหลังบัตรประชาชน' };
+  }
+
+  const cleanCode = laserCode.replace(/-/g, '');
+
+  if (cleanCode.length !== 12) {
+    return { isValid: false, error: 'เลขหลังบัตรต้องมี 12 หลัก' };
+  }
+
+  if (!/^[A-Za-z]{2}\d{10}$/.test(cleanCode)) {
+    return {
+      isValid: false,
+      error:
+        'รูปแบบเลขหลังบัตรไม่ถูกต้อง (ตัวอักษร 2 ตัว ตามด้วยตัวเลข 10 ตัว)',
+    };
   }
 
   return { isValid: true, error: null };

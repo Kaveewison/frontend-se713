@@ -88,6 +88,9 @@ export function useForm<T extends Record<string, any>>(options: UseFormOptions<T
   // Dirty fields - tracks which fields have been modified
   const dirtyFields = ref<Partial<Record<keyof T, boolean>>>({});
 
+  // Touched fields - tracks which fields have been interacted with
+  const touched = ref<Partial<Record<keyof T, boolean>>>({});
+
   /**
    * Computed property indicating if the form is valid
    * 
@@ -144,6 +147,16 @@ export function useForm<T extends Record<string, any>>(options: UseFormOptions<T
   }
 
   /**
+   * Marks a single field as touched and validates it
+   * 
+   * @param field - Field name
+   */
+  function touchField(field: keyof T): void {
+    touched.value[field] = true;
+    validateField(field);
+  }
+
+  /**
    * Validates all fields in the form
    * 
    * @returns True if all fields are valid, false otherwise
@@ -161,6 +174,7 @@ export function useForm<T extends Record<string, any>>(options: UseFormOptions<T
 
     // Validate each field
     for (const field in formData.value) {
+      touched.value[field as keyof T] = true;
       if (!validateField(field as keyof T)) {
         isFormValid = false;
       }
@@ -238,6 +252,9 @@ export function useForm<T extends Record<string, any>>(options: UseFormOptions<T
     
     // Clear all dirty field flags
     dirtyFields.value = {};
+
+    // Clear touched flags
+    touched.value = {};
   }
 
   /**
@@ -278,6 +295,10 @@ export function useForm<T extends Record<string, any>>(options: UseFormOptions<T
     isValid,
     /** Computed: Has any field been modified? */
     isDirty,
+    /** Reactive touched state object */
+    touched,
+    /** Mark field as touched and validate */
+    touchField,
     /** Validate a single field */
     validateField,
     /** Validate all fields */

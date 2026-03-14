@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useElectionStore } from '@/stores';
+import { useElectionStore, useConstituencyStore } from '@/stores';
 import PublicPartiesCardLayout from '@/features/parties/components/PublicPartiesCardLayout.vue';
 
 const router = useRouter();
 const electionStore = useElectionStore();
+const constituencyStore = useConstituencyStore();
+
 const searchQuery = ref('');
-const isPollingOpen = ref(true);
 
 const filteredParties = computed(() => {
   if (!searchQuery.value) {
@@ -20,13 +21,20 @@ const filteredParties = computed(() => {
   );
 });
 
+const isPollingOpen = computed(() => {
+  return constituencyStore.isAllOpened;
+});
+
 const viewMembers = (partyId: number) => {
   router.push(`/parties/public/${partyId}`);
 };
 
 const loadData = async () => {
   try {
-    await electionStore.fetchPartyOverview();
+    Promise.all([
+      electionStore.fetchPartyOverview(),
+      constituencyStore.fetchConstituencies(),
+    ]);
   } catch (error) {
     console.error('Failed to load party overview:', error);
   }

@@ -4,7 +4,11 @@ import { storeToRefs } from 'pinia';
 import { useAuthStore } from '@/stores';
 import { useToast } from '@/composables/useToast';
 import { useForm, type ValidationRule } from '@/composables/useForm';
-import { validateRequired, validateCitizenId } from '@/utils/validators';
+import {
+  validateRequired,
+  validateCitizenId,
+  validateLaserCode,
+} from '@/utils/validators';
 import type { RegistrationDTO } from '@/types/dto';
 import provinces from '@/datas/provinces.json';
 import { httpClient } from '@/api/client';
@@ -32,7 +36,6 @@ const { isLoading } = storeToRefs(authStore);
 const { showSuccess: showSuccessToast, showError } = useToast();
 const showSuccessState = ref(false);
 
-// Dropdown options
 const provinceOptions: DropdownOption[] = provinces.map((p) => ({
   label: p.name_th,
   value: p.name_th,
@@ -74,7 +77,6 @@ const fetchDistricts = async (province: string): Promise<void> => {
   }
 };
 
-// Define validation rules separately to avoid circular reference
 const validationRules: Partial<Record<keyof FormFields, ValidationRule[]>> = {
   firstName: [(v: string) => validateRequired(v, 'ชื่อ').error],
   lastName: [(v: string) => validateRequired(v, 'นามสกุล').error],
@@ -82,13 +84,19 @@ const validationRules: Partial<Record<keyof FormFields, ValidationRule[]>> = {
     (v: string) => validateRequired(v, 'หมายเลขประจำตัว').error,
     (v: string) => validateCitizenId(v).error,
   ],
-  laserCode: [(v: string) => validateRequired(v, 'เลขหลังบัตร').error],
+  laserCode: [
+    (v: string) => validateRequired(v, 'เลขหลังบัตร').error,
+    (v: string) => validateLaserCode(v).error,
+  ],
   address: [(v: string) => validateRequired(v, 'ที่อยู่').error],
   province: [(v: string) => validateRequired(v, 'จังหวัด').error],
-  electoralDistrict: [(v: string) => validateRequired(v, 'เขตเลือกตั้ง').error],
+  electoralDistrict: [
+    (v: string) => validateRequired(v, 'เขตเลือกตั้ง').error,
+    (v: string) =>
+      v === '__no_district__' ? 'จังหวัดนี้ยังไม่มีเขตเลือกตั้ง' : null,
+  ],
 };
 
-// Initialize form with useForm composable
 const formState = useForm<FormFields>({
   initialValues: {
     nationalId: '',
@@ -104,23 +112,8 @@ const formState = useForm<FormFields>({
   validationRules,
 });
 
-const {
-  formData,
-  errors,
-  validateField,
-  validateForm,
-  resetForm: resetFormData,
-} = formState;
+const { formData, errors, touched, touchField, validateForm } = formState;
 
-// Track touched fields for showing errors only after user interaction
-const touched = ref<Record<string, boolean>>({});
-
-const touch = (field: string): void => {
-  touched.value[field] = true;
-  validateField(field as keyof FormFields);
-};
-
-// เมื่อเปลี่ยนจังหวัด ให้ reset เขตและดึงใหม่
 watch(
   () => formData.value.province,
   (newProvince) => {
@@ -132,19 +125,16 @@ watch(
   },
 );
 
-// Sync UI fields to DTO fields
 const syncToDTO = (): void => {
-  // Sync constituencyId จาก electoralDistrict (value คือ id ของ constituency จาก API)
+  const districtValue = formData.value.electoralDistrict;
   formData.value.districtNumber =
-    parseInt(formData.value.electoralDistrict) || 0;
+    districtValue === '__no_district__' ? 0 : parseInt(districtValue) || 0;
 };
 
 const onIdNumberInput = (): void => {
-  // Strip non-numeric characters
   formData.value.nationalId = formData.value.nationalId.replace(/\D/g, '');
 };
 
-// Step completion based on filled fields
 const isStep1Complete = computed(() => {
   return !!(
     formData.value.firstName &&
@@ -166,29 +156,12 @@ const isStep2Complete = computed(() => {
 });
 
 const onSubmit = async (): Promise<void> => {
-  // Touch all fields to show validation errors
-  const allFields = [
-    'firstName',
-    'lastName',
-    'nationalId',
-    'laserCode',
-    'address',
-    'province',
-    'electoralDistrict',
-  ];
-  allFields.forEach((f) => {
-    touched.value[f] = true;
-  });
-
-  // Validate all fields
   if (!validateForm()) {
     return;
   }
 
-  // Sync UI fields to DTO
   syncToDTO();
 
-  // Create DTO for registration
   const registrationData: RegistrationDTO = {
     nationalId: formData.value.nationalId,
     laserCode: formData.value.laserCode,
@@ -199,7 +172,6 @@ const onSubmit = async (): Promise<void> => {
     districtNumber: formData.value.districtNumber,
   };
 
-  // Call register from auth store with try-catch for error handling
   try {
     await authStore.register(registrationData);
     showSuccessToast('ลงทะเบียนสำเร็จ');
@@ -208,18 +180,13 @@ const onSubmit = async (): Promise<void> => {
     setTimeout(() => {
       router.push('/login');
     }, 1000);
-  } catch (err: any) {
-    showError(err.message || 'เกิดข้อผิดพลาดในการลงทะเบียน');
+  } catch (err) {
+    const errorMessage =
+      err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการลงทะเบียน';
+    showError(errorMessage);
   }
 };
 
-const resetForm = (): void => {
-  resetFormData();
-  touched.value = {};
-  showSuccessState.value = false;
-};
-
-// Expose form for template
 const form = formData;
 </script>
 
@@ -297,7 +264,7 @@ const form = formData;
               :required="true"
               :error="errors.firstName"
               :touched="touched.firstName"
-              @blur="touch('firstName')"
+              @blur="touchField('firstName')"
             />
             <CommonInput
               id="reg-lastName"
@@ -308,7 +275,7 @@ const form = formData;
               :required="true"
               :error="errors.lastName"
               :touched="touched.lastName"
-              @blur="touch('lastName')"
+              @blur="touchField('lastName')"
             />
           </div>
         </div>
@@ -326,19 +293,20 @@ const form = formData;
             :show-char-count="true"
             :error="errors.nationalId"
             :touched="touched.nationalId"
-            @blur="touch('nationalId')"
+            @blur="touchField('nationalId')"
             @input="onIdNumberInput"
           />
           <CommonInput
             id="reg-backCard"
             v-model="form.laserCode"
             label="เลขหลังบัตร"
-            placeholder="เลขหลังบัตรประชาชน"
+            placeholder="XX1234567890"
             :icon="CreditCard"
             :required="true"
+            :maxlength="12"
             :error="errors.laserCode"
             :touched="touched.laserCode"
-            @blur="touch('laserCode')"
+            @blur="touchField('laserCode')"
           />
         </div>
 
@@ -355,7 +323,7 @@ const form = formData;
               :required="true"
               :error="errors.address"
               :touched="touched.address"
-              @blur="touch('address')"
+              @blur="touchField('address')"
             />
           </div>
         </div>
@@ -372,8 +340,8 @@ const form = formData;
             :options="provinceOptions"
             :error="errors.province"
             :touched="touched.province"
-            @blur="touch('province')"
-            @change="touch('province')"
+            @blur="touchField('province')"
+            @change="touchField('province')"
           />
           <CommonDropdown
             id="reg-district"
@@ -384,16 +352,24 @@ const form = formData;
                 ? 'กำลังโหลด...'
                 : !form.province
                   ? 'เลือกจังหวัดก่อน'
-                  : 'เลือกเขตเลือกตั้ง'
+                  : districtOptions.length === 1 &&
+                      districtOptions[0].value === '__no_district__'
+                    ? 'ไม่มีเขตเลือกตั้ง'
+                    : 'เลือกเขตเลือกตั้ง'
             "
             :icon="Shield"
             :required="true"
             :options="districtOptions"
-            :disabled="!form.province || isLoadingDistricts"
+            :disabled="
+              !form.province ||
+              isLoadingDistricts ||
+              (districtOptions.length === 1 &&
+                districtOptions[0].value === '__no_district__')
+            "
             :error="errors.electoralDistrict"
             :touched="touched.electoralDistrict"
-            @blur="touch('electoralDistrict')"
-            @change="touch('electoralDistrict')"
+            @blur="touchField('electoralDistrict')"
+            @change="touchField('electoralDistrict')"
           />
         </div>
 
