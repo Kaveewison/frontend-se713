@@ -9,6 +9,7 @@ import type { RegistrationDTO } from '@/types/dto';
 import provinces from '@/datas/provinces.json';
 import { httpClient } from '@/api/client';
 import { API_ENDPOINTS } from '@/api/endpoints';
+import { useRouter } from 'vue-router';
 
 import CommonInput from '@/components/common/CommonInput.vue';
 import CommonDropdown from '@/components/common/CommonDropdown.vue';
@@ -26,6 +27,7 @@ interface FormFields extends RegistrationDTO {
 }
 
 const authStore = useAuthStore();
+const router = useRouter();
 const { isLoading } = storeToRefs(authStore);
 const { showSuccess: showSuccessToast, showError } = useToast();
 const showSuccessState = ref(false);
@@ -200,8 +202,12 @@ const onSubmit = async (): Promise<void> => {
   // Call register from auth store with try-catch for error handling
   try {
     await authStore.register(registrationData);
-    showSuccessToast('ลงทะเบียนสำเร็จ กรุณาเข้าสู่ระบบ');
+    showSuccessToast('ลงทะเบียนสำเร็จ');
     showSuccessState.value = true;
+
+    setTimeout(() => {
+      router.push('/login');
+    }, 1000);
   } catch (err: any) {
     showError(err.message || 'เกิดข้อผิดพลาดในการลงทะเบียน');
   }
@@ -240,9 +246,6 @@ const form = formData;
           </div>
           <h3 class="success-title">ลงทะเบียนสำเร็จ!</h3>
           <p class="success-message">ข้อมูลของท่านถูกบันทึกเรียบร้อยแล้ว</p>
-          <button class="btn-secondary" @click="resetForm">
-            ลงทะเบียนใหม่
-          </button>
         </div>
       </div>
     </transition>

@@ -41,7 +41,6 @@ onMounted(() => {
   <div class="card">
     <h2 class="title">รายชื่อพรรคการเมือง</h2>
 
-    <!-- Top bar: search + status -->
     <div class="top-bar">
       <div class="search-box">
         <svg
@@ -68,18 +67,13 @@ onMounted(() => {
       <div class="status-toggle">
         <span class="text-[24px] font-semibold">สถานะการปิดหีบ:</span>
         <button
-          :class="{ active: isPollingOpen }"
-          @click="isPollingOpen = true"
-          class="text-green-500 font-semibold text-[24px]"
+          class="font-semibold text-[24px]"
+          :class="{
+            'text-green-500': isPollingOpen,
+            'text-red-500': !isPollingOpen,
+          }"
         >
-          เปิด
-        </button>
-        <button
-          :class="{ active: !isPollingOpen }"
-          @click="isPollingOpen = false"
-          class="text-red-500 font-semibold text-[24px]"
-        >
-          ปิด
+          {{ isPollingOpen ? 'เปิด' : 'ปิด' }}
         </button>
       </div>
     </div>
@@ -102,7 +96,6 @@ onMounted(() => {
     </div>
 
     <div v-else class="parties-list">
-      <!-- Header -->
       <div class="list-header">
         <div class="col-num"></div>
         <div class="col-profile">พรรคการเมือง</div>
@@ -112,7 +105,6 @@ onMounted(() => {
         <div class="col-action"></div>
       </div>
 
-      <!-- Rows -->
       <PublicPartiesCardLayout
         v-for="(party, index) in filteredParties"
         :key="party.id"
@@ -120,7 +112,7 @@ onMounted(() => {
         :party-name="party.name"
         :description="party.policy"
         :logo-url="party.logoUrl"
-        :candidate-count="party.totalElectedMPs"
+        :candidate-count="party.totalCandidates"
         :constituency-count="party.totalElectedMPs"
         @view-members="viewMembers(party.id)"
       />

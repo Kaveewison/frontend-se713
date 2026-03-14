@@ -4,6 +4,7 @@ export interface PartyOverview {
   logoUrl: string;
   policy: string;
   totalElectedMPs: number;
+  totalCandidates: number;
 }
 
 export interface PartyOverviewResponse {
