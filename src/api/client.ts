@@ -1,10 +1,10 @@
 // HTTP Client
 // Axios-based HTTP client with interceptors for authentication and error handling
 
-import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
-import { config } from "@/config/environment";
-import { tokenManager } from "@/utils/token-manager";
-import { handleApiError } from "@/utils/error-handler";
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import { config } from '@/config/environment';
+import { tokenManager } from '@/utils/token-manager';
+import { handleApiError } from '@/utils/error-handler';
 
 class HttpClient {
   private client: AxiosInstance;
@@ -14,7 +14,7 @@ class HttpClient {
       baseURL: config.apiBaseUrl,
       timeout: config.requestTimeout,
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
     });
 
@@ -41,9 +41,11 @@ class HttpClient {
       async (error) => {
         // Handle 401 - token expired, redirect to login
         if (error.response?.status === 401) {
-          console.warn('[HttpClient interceptor] 401 Unauthorized, clearing token from tokenManager');
+          console.warn(
+            '[HttpClient interceptor] 401 Unauthorized, clearing token from tokenManager',
+          );
           tokenManager.clearTokens();
-          window.location.href = "/login";
+          window.location.href = '/login';
         }
 
         return Promise.reject(handleApiError(error));
