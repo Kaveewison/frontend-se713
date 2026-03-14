@@ -3,7 +3,7 @@
  * All error messages are in Thai language
  */
 
-import { tr } from 'element-plus/es/locales.mjs';
+
 
 export interface ValidationResult {
   isValid: boolean;

@@ -21,11 +21,6 @@ export async function uploadProfileImage(
   return httpClient.post<UploadProfileImageResponseDTO>(
     API_ENDPOINTS.AUTH.UPLOAD_PROFILE_IMAGE,
     formData,
-    {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    },
   );
 }
 
