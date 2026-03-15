@@ -1,11 +1,9 @@
 import { defineStore } from "pinia";
 import { httpClient } from "@/api/client";
 import { API_ENDPOINTS } from "@/api/endpoints";
-import { validateCitizenId } from "@/utils/validators";
+
 import type { User } from "@/types/models";
-import { UserRole } from "@/types/models/user.model";
 import type {
-  CreateUserDTO,
   UpdateUserDTO,
   UpdateUserResponseDTO,
 } from "@/types/dto/user.dto";
@@ -26,15 +24,7 @@ export const useUserStore = defineStore("user", {
     error: null as string | null,
   }),
 
-  getters: {
-    ectUsers: (state) =>
-      state.users.filter((user) => user.role === UserRole.EC),
-    regularUsers: (state) =>
-      state.users.filter((user) => user.role === UserRole.VOTER),
-    userCount: (state) => state.users.length,
-    ectUserCount: (state) =>
-      state.users.filter((user) => user.role === UserRole.EC).length,
-  },
+  getters: {},
 
   actions: {
     async fetchUsers(params?: GetAllUsersParams): Promise<void> {
@@ -85,33 +75,6 @@ export const useUserStore = defineStore("user", {
         this.selectedUser = response.data;
       } catch (err: any) {
         this.error = err.message || "เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้";
-        throw err;
-      } finally {
-        this.isLoading = false;
-      }
-    },
-
-    async createUser(data: CreateUserDTO): Promise<User> {
-      this.isLoading = true;
-      this.error = null;
-
-      try {
-        // Validate citizen ID before sending request
-        const citizenIdValidation = validateCitizenId(data.citizenId);
-        if (!citizenIdValidation.isValid) {
-          throw new Error(
-            citizenIdValidation.error || "เลขบัตรประชาชนไม่ถูกต้อง",
-          );
-        }
-
-        const newUser = await httpClient.post<User>(
-          API_ENDPOINTS.USERS.BASE,
-          data,
-        );
-        this.users.push(newUser);
-        return newUser;
-      } catch (err: any) {
-        this.error = err.message || "เกิดข้อผิดพลาดในการสร้างผู้ใช้";
         throw err;
       } finally {
         this.isLoading = false;
@@ -222,10 +185,6 @@ export const useUserStore = defineStore("user", {
       }
     },
 
-    clearUsers(): void {
-      this.users = [];
-      this.selectedUser = null;
-      this.error = null;
-    },
+
   },
 });

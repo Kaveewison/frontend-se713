@@ -21,23 +21,7 @@ export const useElectionStore = defineStore('election', {
     error: null as string | null,
   }),
 
-  getters: {
-    totalParties: (state) => state.partyOverview.length,
-
-    totalElectedMPs: (state) =>
-      state.partyOverview.reduce(
-        (sum: number, party: PartyOverview) => sum + party.totalElectedMPs,
-        0,
-      ),
-
-    getPartyOverviewById: (state) => (id: number) =>
-      state.partyOverview.find((party: PartyOverview) => party.id === id),
-
-    sortedByElectedMPs: (state) =>
-      [...state.partyOverview].sort(
-        (a, b) => b.totalElectedMPs - a.totalElectedMPs,
-      ),
-  },
+  getters: {},
 
   actions: {
     async fetchPartyOverview(): Promise<void> {
@@ -76,10 +60,7 @@ export const useElectionStore = defineStore('election', {
       }
     },
 
-    clearPartyOverview(): void {
-      this.partyOverview = [];
-      this.error = null;
-    },
+
 
     async fetchPublicPartyById(id: number): Promise<void> {
       this.isLoading = true;

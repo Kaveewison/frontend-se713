@@ -206,6 +206,7 @@ onMounted(async () => {
 </script>
 
 <template>
+  <div>
   <div class="card">
     <div class="header">
       <h2 class="title">รายชื่อผู้มีสิทธิ์เลือกตั้ง และตั้งค่าลงสมัคร</h2>
@@ -381,6 +382,7 @@ onMounted(async () => {
       </button>
     </template>
   </CommonModal>
+  </div>
 </template>
 
 <style scoped>

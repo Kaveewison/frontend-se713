@@ -15,7 +15,9 @@ const selectedDistrict = '';
 const provinceOptions = computed(() => []);
 const districtOptions = computed(() => []);
 
-const constituency = computed(() => electionResults.value?.constituency ?? null);
+const constituency = computed(
+  () => electionResults.value?.constituency ?? null,
+);
 const candidates = computed(() =>
   [...(electionResults.value?.candidates ?? [])].sort(
     (a, b) => b.voteCount - a.voteCount,
@@ -24,15 +26,18 @@ const candidates = computed(() =>
 
 const isClosed = computed(() => constituency.value?.isClosed ?? false);
 
-const getAvatarUrl = (candidate: { imageUrl: string | null; party: { logoUrl: string | null } }) => {
+const getAvatarUrl = (candidate: {
+  imageUrl: string | null;
+  party: { logoUrl: string | null };
+}) => {
   return candidate.imageUrl || candidate.party.logoUrl || null;
 };
 
 onMounted(async () => {
-  // TODO: เปลี่ยน constituencyId จาก dropdown
-  
-  if(voteStore.myVoteData?.constituency.id){
-    await electionStore.fetchElectionResults(voteStore.myVoteData?.constituency.id);
+  if (voteStore.myVoteData?.constituency.id) {
+    await electionStore.fetchElectionResults(
+      voteStore.myVoteData?.constituency.id,
+    );
   }
 });
 </script>
@@ -105,7 +110,8 @@ onMounted(async () => {
                 </div>
                 <div class="candidate-info">
                   <span class="candidate-name">
-                    {{ candidate.title }}{{ candidate.firstName }} {{ candidate.lastName }}
+                    {{ candidate.title }}{{ candidate.firstName }}
+                    {{ candidate.lastName }}
                   </span>
                   <span class="party-name">{{ candidate.party.name }}</span>
                 </div>
@@ -129,7 +135,9 @@ onMounted(async () => {
             </td>
 
             <td data-label="คะแนนที่ได้" class="text-right">
-              <span class="vote-count">{{ candidate.voteCount.toLocaleString() }}</span>
+              <span class="vote-count">{{
+                candidate.voteCount.toLocaleString()
+              }}</span>
             </td>
           </tr>
         </tbody>

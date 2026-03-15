@@ -32,11 +32,11 @@ export function handleApiError(error: AxiosError): ApiError {
   if (!error.response) {
     apiError.code = 'NETWORK_ERROR';
     apiError.message = 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต';
-    
+
     if (import.meta.env.DEV) {
       console.error('[Network Error]', error.message);
     }
-    
+
     return apiError;
   }
 
@@ -67,15 +67,4 @@ export function handleApiError(error: AxiosError): ApiError {
   }
 
   return apiError;
-}
-
-export function getFieldErrors(error: ApiError): Record<string, string> {
-  if (!error.details) return {};
-  
-  const fieldErrors: Record<string, string> = {};
-  for (const [field, messages] of Object.entries(error.details)) {
-    fieldErrors[field] = messages[0] || '';
-  }
-  
-  return fieldErrors;
 }

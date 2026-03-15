@@ -12,44 +12,7 @@ export const useCandidateStore = defineStore("candidate", {
     error: null as string | null,
   }),
 
-  getters: {
-    candidatesByConstituency: (state) => {
-      const grouped: Record<number, Candidate[]> = {};
-
-      state.candidates.forEach((candidate) => {
-        if (!grouped[candidate.constituencyId]) {
-          grouped[candidate.constituencyId] = [];
-        }
-        grouped[candidate.constituencyId].push(candidate);
-      });
-
-      return grouped;
-    },
-
-    candidatesByParty: (state) => {
-      const grouped: Record<number, Candidate[]> = {};
-
-      state.candidates.forEach((candidate) => {
-        if (!grouped[candidate.partyId]) {
-          grouped[candidate.partyId] = [];
-        }
-        grouped[candidate.partyId].push(candidate);
-      });
-
-      return grouped;
-    },
-
-    getCandidatesByConstituency: (state) => (constituencyId: number) =>
-      state.candidates.filter((c) => c.constituencyId === constituencyId),
-
-    getCandidatesByParty: (state) => (partyId: number) =>
-      state.candidates.filter((c) => c.partyId === partyId),
-
-    getCandidateById: (state) => (id: number) =>
-      state.candidates.find((c) => c.id === id),
-
-    candidateCount: (state) => state.candidates.length,
-  },
+  getters: {},
 
   actions: {
     async fetchCandidates(): Promise<void> {
@@ -61,52 +24,6 @@ export const useCandidateStore = defineStore("candidate", {
           API_ENDPOINTS.CANDIDATES.BASE,
         );
         this.candidates = fetchedCandidates;
-      } catch (err: any) {
-        this.error = err.message || "เกิดข้อผิดพลาดในการดึงข้อมูลผู้สมัคร";
-        throw err;
-      } finally {
-        this.isLoading = false;
-      }
-    },
-
-    async fetchCandidatesByConstituency(constituencyId: number): Promise<void> {
-      this.isLoading = true;
-      this.error = null;
-
-      try {
-        const fetchedCandidates = await httpClient.get<Candidate[]>(
-          API_ENDPOINTS.CANDIDATES.BY_CONSTITUENCY(constituencyId),
-        );
-
-        const otherCandidates = this.candidates.filter(
-          (c) => c.constituencyId !== constituencyId,
-        );
-        this.candidates = [...otherCandidates, ...fetchedCandidates];
-      } catch (err: any) {
-        this.error = err.message || "เกิดข้อผิดพลาดในการดึงข้อมูลผู้สมัคร";
-        throw err;
-      } finally {
-        this.isLoading = false;
-      }
-    },
-
-    async fetchCandidateById(id: number): Promise<Candidate> {
-      this.isLoading = true;
-      this.error = null;
-
-      try {
-        const candidate = await httpClient.get<Candidate>(
-          API_ENDPOINTS.CANDIDATES.BY_ID(id),
-        );
-
-        const index = this.candidates.findIndex((c) => c.id === id);
-        if (index !== -1) {
-          this.candidates[index] = candidate;
-        } else {
-          this.candidates.push(candidate);
-        }
-
-        return candidate;
       } catch (err: any) {
         this.error = err.message || "เกิดข้อผิดพลาดในการดึงข้อมูลผู้สมัคร";
         throw err;
@@ -198,9 +115,6 @@ export const useCandidateStore = defineStore("candidate", {
       }
     },
 
-    clearCandidates(): void {
-      this.candidates = [];
-      this.error = null;
-    },
+
   },
 });
