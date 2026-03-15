@@ -7,6 +7,7 @@ import type { DropdownOption } from '@/components/common/CommonDropdown.vue';
 import type { User } from '@/types/models/user.model';
 
 import CommonSwitch from '@/components/common/CommonSwitch.vue';
+import CommonModal from '@/components/common/CommonModal.vue';
 import CommonInput from '@/components/common/CommonInput.vue';
 import CommonDropdown from '@/components/common/CommonDropdown.vue';
 
@@ -59,7 +60,6 @@ watch(
   { immediate: true },
 );
 
-// Unique provinces from users' constituency
 const provinces = computed(() => {
   const set = new Set<string>();
   users.value.forEach((u) => {
@@ -143,11 +143,51 @@ async function handleSubmit(user: User) {
       showSuccess('ลงสมัครรับเลือกตั้งสำเร็จ');
     }
 
-    // รีเฟรชข้อมูลผู้ใช้เพื่ออัปเดต candidateProfile
     await userStore.fetchUsers();
   } catch (error: any) {
     showError(error.message || 'เกิดข้อผิดพลาดในการลงสมัคร');
   }
+}
+
+const showDeleteModal = ref(false);
+const pendingDeleteUser = ref<User | null>(null);
+
+function handleToggleCandidate(user: User, newValue: boolean) {
+  if (!newValue && isRegistered(user)) {
+    pendingDeleteUser.value = user;
+    showDeleteModal.value = true;
+    return;
+  }
+  candidateForms[user.id].isCandidate = newValue;
+}
+
+const deleteCandidate = async (user: User) => {
+  const profile = user.candidateProfile;
+  if (!profile) return;
+  try {
+    await candidateStore.deleteCandidate(profile.id);
+    showSuccess('ยกเลิกการลงสมัครสำเร็จ');
+    await userStore.fetchUsers();
+  } catch (error: any) {
+    showError(error.message || 'เกิดข้อผิดพลาดในการยกเลิกการลงสมัคร');
+  }
+};
+
+async function confirmDeleteCandidate() {
+  if (!pendingDeleteUser.value) return;
+  const user = pendingDeleteUser.value;
+  showDeleteModal.value = false;
+  pendingDeleteUser.value = null;
+  await deleteCandidate(user);
+}
+
+function cancelDeleteCandidate() {
+  if (pendingDeleteUser.value) {
+    // คืนค่า toggle กลับ true เพราะผู้ใช้กด ยกเลิก
+    candidateForms[pendingDeleteUser.value.id].isCandidate = true;
+  }
+  showDeleteModal.value = false;
+  pendingDeleteUser.value = null;
 }
 
 onMounted(async () => {
@@ -215,7 +255,6 @@ onMounted(async () => {
       ไม่พบข้อมูลผู้ใช้
     </div>
 
-    <!-- List -->
     <div v-else class="candidates-list">
       <div
         v-for="user in filteredUsers"
@@ -249,8 +288,11 @@ onMounted(async () => {
           <div class="status-zone">{{ getConstituencyLabel(user) }}</div>
           <div class="toggle-container">
             <span class="toggle-label">ลงสมัครรับเลือกตั้ง</span>
-            <!-- ใช้ CommonSwitch -->
-            <CommonSwitch v-model="candidateForms[user.id].isCandidate" />
+            <!-- ใช้ CommonSwitch — intercept เมื่อปิด toggle และมี candidateProfile อยู่แล้ว -->
+            <CommonSwitch
+              :modelValue="candidateForms[user.id].isCandidate"
+              @update:modelValue="(v) => handleToggleCandidate(user, v)"
+            />
           </div>
         </div>
 
@@ -310,6 +352,35 @@ onMounted(async () => {
       </div>
     </div>
   </div>
+
+  <!-- Confirm Delete Modal (outside .card, uses Teleport internally) -->
+  <CommonModal
+    v-model="showDeleteModal"
+    title="ยืนยันการยกเลิกการลงสมัคร"
+    size="small"
+    confirmText="ยืนยัน"
+    cancelText="ยกเลิก"
+    :confirmLoading="candidateStore.isLoading"
+    @confirm="confirmDeleteCandidate"
+    @cancel="cancelDeleteCandidate"
+  >
+    <template #footer>
+      <button
+        class="modal-btn modal-btn-cancel"
+        :disabled="candidateStore.isLoading"
+        @click="cancelDeleteCandidate"
+      >
+        ยกเลิก
+      </button>
+      <button
+        class="modal-btn modal-btn-danger"
+        :disabled="candidateStore.isLoading"
+        @click="confirmDeleteCandidate"
+      >
+        {{ candidateStore.isLoading ? 'กำลังดำเนินการ...' : 'ยืนยัน' }}
+      </button>
+    </template>
+  </CommonModal>
 </template>
 
 <style scoped>
@@ -557,6 +628,40 @@ onMounted(async () => {
 
 .form-actions {
   margin-bottom: 1px;
+}
+
+/* Modal buttons */
+.modal-btn {
+  padding: 9px 20px;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.modal-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.modal-btn-cancel {
+  background-color: #e5e7eb;
+  color: var(--text-secondary);
+}
+
+.modal-btn-cancel:hover:not(:disabled) {
+  background-color: #d1d5db;
+}
+
+.modal-btn-danger {
+  background-color: #5947ec;
+  color: white;
+}
+
+.modal-btn-danger:hover:not(:disabled) {
+  background-color: #dc2626;
 }
 
 .btn {

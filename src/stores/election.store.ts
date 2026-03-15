@@ -133,10 +133,11 @@ export const useElectionStore = defineStore('election', {
       }
     },
 
-    async uploadPartyLogo(partyId: number, file: File): Promise<void> {
+    async uploadPartyLogo(partyId: number, image: File): Promise<void> {
       try {
         const formData = new FormData();
-        formData.append('file', file);
+        formData.append('image', image);
+
         await httpClient.post(
           API_ENDPOINTS.ELECTION.UPLOAD_PARTY_LOGO(partyId),
           formData,

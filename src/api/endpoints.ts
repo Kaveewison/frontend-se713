@@ -38,6 +38,7 @@ export const API_ENDPOINTS = {
     ELECTION_RESULTS: (id: number) => `/election/constituency/${id}`,
     ADD_CANDIDATE: '/election/candidate',
     UPDATE_CANDIDATE: (id: number) => `/election/candidate/${id}`,
+    DELETE_CANDIDATE: (id: number) => `/election/candidate/${id}`,
   },
 
   // Parties

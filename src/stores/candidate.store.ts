@@ -186,7 +186,7 @@ export const useCandidateStore = defineStore("candidate", {
 
       try {
         await httpClient.delete<SuccessResponse>(
-          API_ENDPOINTS.CANDIDATES.BY_ID(id),
+          API_ENDPOINTS.ELECTION.DELETE_CANDIDATE(id),
         );
 
         this.candidates = this.candidates.filter((c) => c.id !== id);
