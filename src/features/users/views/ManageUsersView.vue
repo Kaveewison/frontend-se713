@@ -3,14 +3,20 @@ import { ref, computed, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/user.store';
 import { UserRole } from '@/types/models/user.model';
+import { useToast } from '@/composables/useToast';
 
 const userStore = useUserStore();
-const { users, isLoading, error } = storeToRefs(userStore);
+const { users, isLoading } = storeToRefs(userStore);
+const { showSuccess, showError } = useToast();
 
 const searchQuery = ref('');
 
 onMounted(async () => {
-  await userStore.fetchUsers();
+  try {
+    await userStore.fetchUsers();
+  } catch (err: any) {
+    showError(err.message || 'เกิดข้อผิดพลาดในการโหลดข้อมูล');
+  }
 });
 
 const filteredUsers = computed(() => {
@@ -23,11 +29,19 @@ function isECT(role: string): boolean {
   return role === UserRole.EC;
 }
 
-async function handleToggleECT(userId: number): Promise<void> {
+async function handleToggleECT(userId: number, role: string): Promise<void> {
   try {
-    await userStore.toggleECTStatus(userId);
-  } catch (err) {
-    console.error('Failed to toggle ECT status:', err);
+    if (isECT(role)) {
+      await userStore.demoteECToUser(userId);
+      showSuccess('ถอดถอน กกต. สำเร็จ');
+    } else {
+      await userStore.promoteUserToEC(userId);
+      showSuccess('แต่งตั้ง กกต. สำเร็จ');
+    }
+
+    await userStore.fetchUsers();
+  } catch (err: any) {
+    showError(err.message || 'เกิดข้อผิดพลาดในการเปลี่ยนสถานะ');
   }
 }
 </script>
@@ -67,11 +81,6 @@ async function handleToggleECT(userId: number): Promise<void> {
     <div v-if="isLoading" class="loading-state">
       <div class="spinner"></div>
       <p>กำลังโหลดข้อมูล...</p>
-    </div>
-
-    <!-- Error -->
-    <div v-else-if="error" class="error-state">
-      <p>{{ error }}</p>
     </div>
 
     <!-- Table -->
@@ -117,7 +126,7 @@ async function handleToggleECT(userId: number): Promise<void> {
                 <input
                   type="checkbox"
                   :checked="isECT(user.role)"
-                  @change="handleToggleECT(user.id)"
+                  @change="handleToggleECT(user.id, user.role)"
                   :disabled="isLoading"
                 />
                 <span class="slider round"></span>

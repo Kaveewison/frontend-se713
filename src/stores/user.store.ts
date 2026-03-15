@@ -168,13 +168,13 @@ export const useUserStore = defineStore("user", {
       }
     },
 
-    async toggleECTStatus(id: number): Promise<User> {
+    async promoteUserToEC(id: number): Promise<User> {
       this.isLoading = true;
       this.error = null;
 
       try {
         const updatedUser = await httpClient.patch<User>(
-          API_ENDPOINTS.USERS.TOGGLE_ECT(id),
+          API_ENDPOINTS.USERS.PROMOTE_EC(id),
         );
 
         const index = this.users.findIndex((u) => u.id === id);
@@ -188,7 +188,34 @@ export const useUserStore = defineStore("user", {
 
         return updatedUser;
       } catch (err: any) {
-        this.error = err.message || "เกิดข้อผิดพลาดในการเปลี่ยนสถานะ ECT";
+        this.error = err.message || "เกิดข้อผิดพลาดในการแต่งตั้งเป็น กกต.";
+        throw err;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    async demoteECToUser(id: number): Promise<User> {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const updatedUser = await httpClient.patch<User>(
+          API_ENDPOINTS.USERS.DEMOTE_VOTER(id),
+        );
+
+        const index = this.users.findIndex((u) => u.id === id);
+        if (index !== -1) {
+          this.users[index] = updatedUser;
+        }
+
+        if (this.selectedUser?.id === id) {
+          this.selectedUser = updatedUser;
+        }
+
+        return updatedUser;
+      } catch (err: any) {
+        this.error = err.message || "เกิดข้อผิดพลาดในการถอดถอน กกต.";
         throw err;
       } finally {
         this.isLoading = false;

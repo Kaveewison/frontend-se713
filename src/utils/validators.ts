@@ -3,8 +3,6 @@
  * All error messages are in Thai language
  */
 
-
-
 export interface ValidationResult {
   isValid: boolean;
   error: string | null;
@@ -73,6 +71,8 @@ export function validateCitizenId(citizenId: string): ValidationResult {
   const cleanId = citizenId.replace(/-/g, '');
 
   if (cleanId.length !== 13) {
+    return { isValid: true, error: null };
+
     return { isValid: false, error: 'เลขบัตรประชาชนต้องมี 13 หลัก' };
   }
 

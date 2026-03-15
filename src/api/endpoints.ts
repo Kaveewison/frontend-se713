@@ -23,6 +23,8 @@ export const API_ENDPOINTS = {
     BASE: '/admin/users',
     BY_ID: (id: number) => `/admin/user/${id}`,
     TOGGLE_ECT: (id: number) => `/users/${id}/ect-status`,
+    PROMOTE_EC: (id: number) => `/admin/promote-ec/${id}`,
+    DEMOTE_VOTER: (id: number) => `/admin/demote-voter/${id}`,
   },
 
   ELECTION: {
