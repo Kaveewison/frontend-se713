@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useVoteStore } from '@/stores/vote.store';
+import { useToast } from '@/composables/useToast';
 import VoteView from './VoteView.vue';
 import VoteResultView from './VoteResultView.vue';
 
 const voteStore = useVoteStore();
+const { showError } = useToast();
 
 const isInitializing = ref(true);
 
@@ -18,7 +20,8 @@ onMounted(async () => {
       voteStore.getMyVote(),
       voteStore.getBallot(),
     ]);
-  } catch {
+  } catch (err: any) {
+    showError(err.message || 'เกิดข้อผิดพลาดในการโหลดข้อมูล');
   } finally {
     isInitializing.value = false;
   }
