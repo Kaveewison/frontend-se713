@@ -14,12 +14,12 @@
  * ```
  */
 
-import { ElNotification } from "element-plus";
+import { ElNotification } from 'element-plus';
 
 /**
  * Toast type variants
  */
-export type ToastType = "success" | "error" | "info" | "warning";
+export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
 /** Default duration for toasts (3 seconds) */
 const DEFAULT_DURATION = 3000;
@@ -47,11 +47,11 @@ export function useToast() {
    */
   function showSuccess(message: string, duration = DEFAULT_DURATION): void {
     ElNotification({
-      title: "สำเร็จ",
+      title: 'สำเร็จ',
       message,
-      type: "success",
+      type: 'success',
       duration,
-      position: "top-right",
+      position: 'top-right',
     });
   }
 
@@ -67,12 +67,14 @@ export function useToast() {
    * ```
    */
   function showError(message: string, duration = DEFAULT_DURATION): void {
+    if (message && message.includes('ไม่มีสิทธิ์')) return;
+
     ElNotification({
-      title: "เกิดข้อผิดพลาด",
+      title: 'เกิดข้อผิดพลาด',
       message,
-      type: "error",
+      type: 'error',
       duration,
-      position: "top-right",
+      position: 'top-right',
     });
   }
 
@@ -89,11 +91,11 @@ export function useToast() {
    */
   function showInfo(message: string, duration = DEFAULT_DURATION): void {
     ElNotification({
-      title: "ข้อมูล",
+      title: 'ข้อมูล',
       message,
-      type: "info",
+      type: 'info',
       duration,
-      position: "top-right",
+      position: 'top-right',
     });
   }
 
@@ -110,11 +112,11 @@ export function useToast() {
    */
   function showWarning(message: string, duration = DEFAULT_DURATION): void {
     ElNotification({
-      title: "คำเตือน",
+      title: 'คำเตือน',
       message,
-      type: "warning",
+      type: 'warning',
       duration,
-      position: "top-right",
+      position: 'top-right',
     });
   }
 

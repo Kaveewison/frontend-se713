@@ -117,6 +117,30 @@ export const useConstituencyStore = defineStore('constituency', {
       }
     },
 
+    async fetchPublicConstituencies(): Promise<void> {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const response = await httpClient.get<any>(
+          API_ENDPOINTS.CONSTITUENCIES.BASE,
+        );
+
+        this.constituencies = Array.isArray(response)
+          ? response
+          : response.data || [];
+
+        if (this.constituencies.length > 0) {
+          this.isAllOpened = this.constituencies.every((c) => !c.isClosed);
+        }
+      } catch (err: any) {
+        this.error = err.message || 'เกิดข้อผิดพลาดในการดึงข้อมูลเขตเลือกตั้ง';
+        throw err;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
     async fetchAdminConstituencies(): Promise<void> {
       this.isLoading = true;
       this.error = null;

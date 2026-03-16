@@ -21,7 +21,7 @@ const {
   isAllOpened,
 } = storeToRefs(constituencyStore);
 const {
-  fetchAdminConstituencies,
+  fetchPublicConstituencies,
   createConstituency,
   updateConstituency,
   deleteConstituency: deleteConstituencyAction,
@@ -282,7 +282,7 @@ const getConstituencyStats = (constituencyId: number) => {
 
 onMounted(async () => {
   try {
-    await fetchAdminConstituencies();
+    await fetchPublicConstituencies();
   } catch (error: any) {
     showError(error.message || 'เกิดข้อผิดพลาดในการโหลดข้อมูล');
   }
