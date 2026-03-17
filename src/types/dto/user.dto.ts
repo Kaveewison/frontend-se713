@@ -16,6 +16,7 @@ export interface UpdateUserDTO {
   lastName?: string;
   address?: string;
   constituencyId?: number;
+  imageUrl?: string;
 }
 
 export interface UpdateUserResponseDTO {

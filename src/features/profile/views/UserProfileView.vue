@@ -94,15 +94,11 @@ const handleSave = async () => {
 
   isSaving.value = true;
   try {
+    let imageUrl: string | undefined = selectedUser.value.imageUrl || undefined;
+
     if (selectedFile.value) {
       const response = await uploadProfileImage(selectedFile.value);
-
-      if (selectedUser.value) {
-        selectedUser.value.imageUrl = response.data.imageUrl;
-        selectedUser.value.firstName = response.data.firstName;
-        selectedUser.value.lastName = response.data.lastName;
-      }
-
+      imageUrl = response.data.imageUrl;
       clearImagePreview();
     }
 
@@ -111,10 +107,10 @@ const handleSave = async () => {
       firstName: formData.firstName,
       lastName: formData.lastName,
       address: formData.address,
-      constituencyId: selectedUser.value.constituencyId,
+      imageUrl,
     };
 
-    await userStore.updateUser(selectedUser.value.id, updateData);
+    await userStore.updateVoterUser(selectedUser.value.id, updateData);
 
     showSuccess('บันทึกข้อมูลสำเร็จ');
     isEditMode.value = false;
