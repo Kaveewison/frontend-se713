@@ -14,8 +14,9 @@ export const API_ENDPOINTS = {
     REGISTER: '/auth/register',
     LOGOUT: '/auth/logout',
     REFRESH: '/auth/refresh',
-    CURRENT_USER: '/auth/me',
+    CURRENT_USER: (id?: number) => (id ? `/auth/me/${id}` : `/auth/me`),
     UPLOAD_PROFILE_IMAGE: '/auth/upload-profile-image',
+    PROFILE: '/auth/profile',
   },
 
   // Users

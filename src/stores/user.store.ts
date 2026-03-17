@@ -1,13 +1,13 @@
-import { defineStore } from "pinia";
-import { httpClient } from "@/api/client";
-import { API_ENDPOINTS } from "@/api/endpoints";
+import { defineStore } from 'pinia';
+import { httpClient } from '@/api/client';
+import { API_ENDPOINTS } from '@/api/endpoints';
 
-import type { User } from "@/types/models";
+import type { User } from '@/types/models';
 import type {
   UpdateUserDTO,
   UpdateUserResponseDTO,
-} from "@/types/dto/user.dto";
-import type { SuccessResponse } from "@/types/api";
+} from '@/types/dto/user.dto';
+import type { SuccessResponse } from '@/types/api';
 
 export interface GetAllUsersParams {
   page?: number;
@@ -16,7 +16,7 @@ export interface GetAllUsersParams {
   search?: string;
 }
 
-export const useUserStore = defineStore("user", {
+export const useUserStore = defineStore('user', {
   state: () => ({
     users: [] as User[],
     selectedUser: null as User | null,
@@ -35,19 +35,19 @@ export const useUserStore = defineStore("user", {
         const queryParams = new URLSearchParams();
 
         if (params?.page) {
-          queryParams.append("page", params.page.toString());
+          queryParams.append('page', params.page.toString());
         }
 
         if (params?.pageSize) {
-          queryParams.append("pageSize", params.pageSize.toString());
+          queryParams.append('pageSize', params.pageSize.toString());
         }
 
         if (params?.ectStatus !== undefined) {
-          queryParams.append("ectStatus", params.ectStatus.toString());
+          queryParams.append('ectStatus', params.ectStatus.toString());
         }
 
         if (params?.search) {
-          queryParams.append("search", params.search);
+          queryParams.append('search', params.search);
         }
 
         const url = queryParams.toString()
@@ -57,7 +57,7 @@ export const useUserStore = defineStore("user", {
         const response = await httpClient.get<SuccessResponse<User[]>>(url);
         this.users = response.data;
       } catch (err: any) {
-        this.error = err.message || "เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้";
+        this.error = err.message || 'เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้';
         throw err;
       } finally {
         this.isLoading = false;
@@ -74,7 +74,7 @@ export const useUserStore = defineStore("user", {
         );
         this.selectedUser = response.data;
       } catch (err: any) {
-        this.error = err.message || "เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้";
+        this.error = err.message || 'เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้';
         throw err;
       } finally {
         this.isLoading = false;
@@ -104,7 +104,32 @@ export const useUserStore = defineStore("user", {
 
         return updatedUser as User;
       } catch (err: any) {
-        this.error = err.message || "เกิดข้อผิดพลาดในการอัปเดตผู้ใช้";
+        this.error = err.message || 'เกิดข้อผิดพลาดในการอัปเดตผู้ใช้';
+        throw err;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    async updateVoterUser(data: UpdateUserDTO): Promise<User> {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const response = await httpClient.put<UpdateUserResponseDTO>(
+          API_ENDPOINTS.AUTH.PROFILE,
+          data,
+        );
+
+        const updatedUser = response.data;
+
+        if (this.selectedUser) {
+          this.selectedUser = updatedUser as User;
+        }
+
+        return updatedUser as User;
+      } catch (err: any) {
+        this.error = err.message || 'เกิดข้อผิดพลาดในการอัปเดตผู้ใช้';
         throw err;
       } finally {
         this.isLoading = false;
@@ -124,7 +149,7 @@ export const useUserStore = defineStore("user", {
           this.selectedUser = null;
         }
       } catch (err: any) {
-        this.error = err.message || "เกิดข้อผิดพลาดในการลบผู้ใช้";
+        this.error = err.message || 'เกิดข้อผิดพลาดในการลบผู้ใช้';
         throw err;
       } finally {
         this.isLoading = false;
@@ -151,7 +176,7 @@ export const useUserStore = defineStore("user", {
 
         return updatedUser;
       } catch (err: any) {
-        this.error = err.message || "เกิดข้อผิดพลาดในการแต่งตั้งเป็น กกต.";
+        this.error = err.message || 'เกิดข้อผิดพลาดในการแต่งตั้งเป็น กกต.';
         throw err;
       } finally {
         this.isLoading = false;
@@ -178,13 +203,11 @@ export const useUserStore = defineStore("user", {
 
         return updatedUser;
       } catch (err: any) {
-        this.error = err.message || "เกิดข้อผิดพลาดในการถอดถอน กกต.";
+        this.error = err.message || 'เกิดข้อผิดพลาดในการถอดถอน กกต.';
         throw err;
       } finally {
         this.isLoading = false;
       }
     },
-
-
   },
 });

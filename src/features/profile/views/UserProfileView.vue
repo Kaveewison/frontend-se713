@@ -110,7 +110,7 @@ const handleSave = async () => {
       imageUrl,
     };
 
-    await userStore.updateVoterUser(selectedUser.value.id, updateData);
+    await userStore.updateVoterUser(updateData);
 
     showSuccess('บันทึกข้อมูลสำเร็จ');
     isEditMode.value = false;
