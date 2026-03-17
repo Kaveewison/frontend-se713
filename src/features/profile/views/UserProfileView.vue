@@ -2,7 +2,8 @@
 import { ref, reactive, watch, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
-import { useAuthStore, useUserStore } from '@/stores';
+import { useAuthStore } from '@/stores';
+import { useUserStore } from '@/stores';
 import { useToast } from '@/composables/useToast';
 import {
   uploadProfileImage,
@@ -20,8 +21,7 @@ import CommonDropdown from '@/components/common/CommonDropdown.vue';
 const router = useRouter();
 const authStore = useAuthStore();
 const userStore = useUserStore();
-const { isLoading } = storeToRefs(authStore);
-const { selectedUser } = storeToRefs(userStore);
+const { isLoading, currentUser } = storeToRefs(authStore);
 const { showSuccess, showError } = useToast();
 
 const isEditMode = ref(false);
@@ -38,11 +38,11 @@ const formData = reactive({
 });
 
 const initializeFormData = () => {
-  if (selectedUser.value) {
-    formData.title = selectedUser.value.title || '';
-    formData.firstName = selectedUser.value.firstName || '';
-    formData.lastName = selectedUser.value.lastName || '';
-    formData.address = selectedUser.value.address || '';
+  if (currentUser.value) {
+    formData.title = currentUser.value.title || '';
+    formData.firstName = currentUser.value.firstName || '';
+    formData.lastName = currentUser.value.lastName || '';
+    formData.address = currentUser.value.address || '';
   }
 };
 
@@ -90,11 +90,11 @@ const clearImagePreview = () => {
 };
 
 const handleSave = async () => {
-  if (!selectedUser.value) return;
+  if (!currentUser.value) return;
 
   isSaving.value = true;
   try {
-    let imageUrl: string | undefined = selectedUser.value.imageUrl || undefined;
+    let imageUrl: string | undefined = currentUser.value.imageUrl || undefined;
 
     if (selectedFile.value) {
       const response = await uploadProfileImage(selectedFile.value);
@@ -111,6 +111,7 @@ const handleSave = async () => {
     };
 
     await userStore.updateVoterUser(updateData);
+    await authStore.checkAuth();
 
     showSuccess('บันทึกข้อมูลสำเร็จ');
     isEditMode.value = false;
@@ -136,9 +137,8 @@ const handleLogout = async () => {
 
 watch(
   () => authStore?.currentUser,
-  async () => {
+  () => {
     if (authStore?.currentUser) {
-      await userStore.fetchUserById(authStore.currentUser.id);
       initializeFormData();
     }
   },
@@ -155,7 +155,7 @@ onUnmounted(() => {
     <div class="card">
       <h2 class="title">บันทึกข้อมูลผู้ใช้งาน</h2>
 
-      <div v-if="!selectedUser" class="loading-state">
+      <div v-if="!currentUser" class="loading-state">
         <div class="spinner"></div>
         <p>กำลังโหลดข้อมูล...</p>
       </div>
@@ -166,10 +166,10 @@ onUnmounted(() => {
             <img
               :src="
                 previewUrl ||
-                selectedUser.imageUrl ||
-                `https://api.dicebear.com/7.x/avataaars/svg?seed=${selectedUser.firstName}`
+                currentUser.imageUrl ||
+                `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.firstName}`
               "
-              :alt="`${selectedUser.firstName} avatar`"
+              :alt="`${currentUser.firstName} avatar`"
             />
           </div>
           <div class="upload-actions">
@@ -231,7 +231,7 @@ onUnmounted(() => {
           <BaseFormGroup label="หมายเลขประจำตัว 13 หลัก" for="nationalId">
             <CommonInput
               id="nationalId"
-              :modelValue="selectedUser.nationalId"
+              :modelValue="currentUser.nationalId"
               type="text"
               disabled
             />
@@ -240,7 +240,7 @@ onUnmounted(() => {
           <BaseFormGroup label="เลขหลังบัตร" for="laserCode">
             <CommonInput
               id="laserCode"
-              :modelValue="selectedUser.laserCode || '-'"
+              :modelValue="currentUser.laserCode || '-'"
               type="text"
               disabled
             />
@@ -261,7 +261,7 @@ onUnmounted(() => {
           <BaseFormGroup label="จังหวัด" for="province">
             <CommonInput
               id="province"
-              :modelValue="selectedUser.constituency?.province || '-'"
+              :modelValue="currentUser.constituency?.province || '-'"
               type="text"
               disabled
             />
@@ -271,7 +271,7 @@ onUnmounted(() => {
             <CommonInput
               id="district"
               :modelValue="
-                selectedUser.constituency?.districtNumber?.toString() || '-'
+                currentUser.constituency?.districtNumber?.toString() || '-'
               "
               type="text"
               disabled

@@ -1,18 +1,16 @@
-import { defineStore } from "pinia";
-import { httpClient } from "@/api/client";
-import { API_ENDPOINTS } from "@/api/endpoints";
-import { tokenManager } from "@/utils/token-manager";
-import {
-  validateCitizenId,
-} from "@/utils/validators";
-import type { User } from "@/types/models";
+import { defineStore } from 'pinia';
+import { httpClient } from '@/api/client';
+import { API_ENDPOINTS } from '@/api/endpoints';
+import { tokenManager } from '@/utils/token-manager';
+import { validateCitizenId } from '@/utils/validators';
+import type { User } from '@/types/models';
 import type {
   LoginDTO,
   RegistrationDTO,
   AuthResponseDTO,
-} from "@/types/dto/auth.dto";
+} from '@/types/dto/auth.dto';
 
-export const useAuthStore = defineStore("auth", {
+export const useAuthStore = defineStore('auth', {
   state: () => ({
     currentUser: null as User | null,
     isAuthenticated: false,
@@ -24,11 +22,11 @@ export const useAuthStore = defineStore("auth", {
   getters: {
     userRole: (state) => state.currentUser?.role,
     isECTUser: (state) =>
-      state.currentUser?.role === "ADMIN" || state.currentUser?.role === "EC",
+      state.currentUser?.role === 'ADMIN' || state.currentUser?.role === 'EC',
     userName: (state) =>
       state.currentUser
         ? `${state.currentUser.firstName} ${state.currentUser.lastName}`
-        : "",
+        : '',
   },
 
   actions: {
@@ -41,7 +39,7 @@ export const useAuthStore = defineStore("auth", {
 
         if (!nationalIdValidation.isValid) {
           throw new Error(
-            nationalIdValidation.error || "หมายเลขประจำตัวไม่ถูกต้อง",
+            nationalIdValidation.error || 'หมายเลขประจำตัวไม่ถูกต้อง',
           );
         }
 
@@ -51,22 +49,21 @@ export const useAuthStore = defineStore("auth", {
         );
 
         if (!response.success) {
-          throw new Error(response.message || "เกิดข้อผิดพลาดในการเข้าสู่ระบบ");
+          throw new Error(response.message || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ');
         }
 
         this.clearAuth();
 
-        // Store token and user
         tokenManager.setToken(response.data.token);
         tokenManager.setUser(response.data.user);
 
         this.currentUser = response.data.user;
         this.isAuthenticated = true;
         this.isAdmin =
-          response.data.user.role === "ADMIN" ||
-          response.data.user.role === "EC";
+          response.data.user.role === 'ADMIN' ||
+          response.data.user.role === 'EC';
       } catch (err: any) {
-        this.error = err.message || "เกิดข้อผิดพลาดในการเข้าสู่ระบบ";
+        this.error = err.message || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ';
         throw err;
       } finally {
         this.isLoading = false;
@@ -83,7 +80,7 @@ export const useAuthStore = defineStore("auth", {
           data,
         );
       } catch (err: any) {
-        this.error = err.message || "เกิดข้อผิดพลาดในการลงทะเบียน";
+        this.error = err.message || 'เกิดข้อผิดพลาดในการลงทะเบียน';
         throw err;
       } finally {
         this.isLoading = false;
@@ -96,7 +93,7 @@ export const useAuthStore = defineStore("auth", {
       try {
         await httpClient.post(API_ENDPOINTS.AUTH.LOGOUT);
       } catch (err) {
-        console.error("Logout error:", err);
+        console.error('Logout error:', err);
       } finally {
         this.currentUser = null;
         this.isAuthenticated = false;
@@ -122,27 +119,30 @@ export const useAuthStore = defineStore("auth", {
 
         let user = null;
         if (response.data && response.data.id) {
-          // Backend returned full user object in data wrapper
           user = response.data;
           tokenManager.setUser(user); // refresh cache
         } else if (response.id) {
-          // Backend returned full user object directly
           user = response;
           tokenManager.setUser(user); // refresh cache
-        } else if (response.success === true || response.success === "true") {
-          // Backend just returned success status, fallback to local cache
+        } else if (response.success === true || response.success === 'true') {
           user = tokenManager.getUser();
         }
 
         if (user) {
           this.currentUser = user;
           this.isAuthenticated = true;
-          this.isAdmin = user.role === "ADMIN" || user.role === "EC";
+          this.isAdmin = user.role === 'ADMIN' || user.role === 'EC';
         } else {
-          throw new Error("Unable to resolve user data from API or local cache.");
+          throw new Error(
+            'Unable to resolve user data from API or local cache.',
+          );
         }
       } catch (err) {
-        console.error("[AuthStore] checkAuth failed with error:", err, "Clearing auth state.");
+        console.error(
+          '[AuthStore] checkAuth failed with error:',
+          err,
+          'Clearing auth state.',
+        );
         this.clearAuth();
       } finally {
         this.isLoading = false;

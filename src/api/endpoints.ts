@@ -1,12 +1,3 @@
-/**
- * API Endpoints Constants
- *
- * Centralized definition of all API endpoint paths.
- * Uses typed constants and function factories for parameterized endpoints.
- *
- * @module api/endpoints
- */
-
 export const API_ENDPOINTS = {
   // Authentication
   AUTH: {
@@ -14,7 +5,7 @@ export const API_ENDPOINTS = {
     REGISTER: '/auth/register',
     LOGOUT: '/auth/logout',
     REFRESH: '/auth/refresh',
-    CURRENT_USER: (id?: number) => (id ? `/auth/me/${id}` : `/auth/me`),
+    CURRENT_USER: `/auth/me`,
     UPLOAD_PROFILE_IMAGE: '/auth/upload-profile-image',
     PROFILE: '/auth/profile',
   },
