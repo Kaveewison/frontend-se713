@@ -13,9 +13,15 @@ const electionStore = useElectionStore();
 
 const partyId = computed(() => Number(route.params.id) || 1);
 const isPublicRoute = computed(() => !route.path.includes('/candidates'));
-const backPath = computed(() => isPublicRoute.value ? '/parties/public' : '/candidates/party');
+const backPath = computed(() =>
+  isPublicRoute.value ? '/parties/public' : '/candidates/party',
+);
 
-const { publicPartyDetail: party, isLoading, error } = storeToRefs(electionStore);
+const {
+  publicPartyDetail: party,
+  isLoading,
+  error,
+} = storeToRefs(electionStore);
 
 // Filters
 const filterProvince = ref('');
@@ -121,9 +127,7 @@ onMounted(() => {
           <p class="subtitle">{{ party.policy }}</p>
         </div>
 
-        <button class="btn-view" @click="$router.push(backPath)">
-          กลับ
-        </button>
+        <button class="btn-view" @click="$router.push(backPath)">กลับ</button>
       </div>
     </div>
 
@@ -179,7 +183,11 @@ onMounted(() => {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="candidate in filteredCandidates" :key="candidate.id">
+            <tr
+              v-for="candidate in filteredCandidates"
+              :key="candidate.id"
+              :class="{ 'row-elected': candidate.isElected }"
+            >
               <td data-label="ชื่อ-นามสกุล">
                 <div class="member-info">
                   <img
@@ -200,6 +208,9 @@ onMounted(() => {
                       {{ candidate.title }}{{ candidate.firstName }}
                       {{ candidate.lastName }}
                     </div>
+                    <span v-if="candidate.isElected" class="elected-badge"
+                      >ชนะเลือกตั้ง</span
+                    >
                   </div>
                 </div>
               </td>
@@ -448,12 +459,31 @@ onMounted(() => {
 .elected-badge {
   display: inline-block;
   margin-top: 3px;
-  padding: 1px 8px;
+  padding: 2px 8px;
   background: #dcfce7;
   color: #166534;
   border-radius: 999px;
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
+}
+
+.result-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.result-badge.elected {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.result-badge.not-elected {
+  color: var(--text-muted);
+  font-size: 1rem;
 }
 
 .policy-cell {

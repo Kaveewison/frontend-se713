@@ -114,6 +114,18 @@ onUnmounted(() => {
         >
           <div class="mobile-menu-content" ref="mobileMenuRef">
             <template v-if="authStore.isAuthenticated">
+              <!-- Home Link -->
+              <div class="mobile-menu-group">
+                <router-link
+                  to="/"
+                  class="mobile-menu-item mobile-menu-group-title"
+                  :class="{ 'router-link-active': isMenuActive('parties') }"
+                  @click="closeMobileMenu"
+                >
+                  หน้าแรก
+                </router-link>
+              </div>
+
               <!-- Vote Link -->
               <div class="mobile-menu-group">
                 <router-link
@@ -123,18 +135,6 @@ onUnmounted(() => {
                   @click="closeMobileMenu"
                 >
                   ลงคะแนนเสียง/ดูผลคะแนน
-                </router-link>
-              </div>
-
-              <!-- Parties Link (no toggle) -->
-              <div class="mobile-menu-group">
-                <router-link
-                  to="/"
-                  class="mobile-menu-item mobile-menu-group-title"
-                  :class="{ 'router-link-active': isMenuActive('parties') }"
-                  @click="closeMobileMenu"
-                >
-                  รายชื่อพรรคการเมือง
                 </router-link>
               </div>
 
@@ -219,6 +219,15 @@ onUnmounted(() => {
               </router-link>
             </template>
             <template v-else>
+              <div class="mobile-menu-group">
+                <router-link
+                  to="/"
+                  class="mobile-menu-item mobile-menu-group-title"
+                  @click="closeMobileMenu"
+                >
+                  หน้าแรก
+                </router-link>
+              </div>
               <router-link
                 to="/login"
                 class="mobile-menu-item"
@@ -233,16 +242,16 @@ onUnmounted(() => {
 
       <nav v-if="!showMobileUI && authStore.isAuthenticated" class="main-menu">
         <router-link
+          to="/"
+          class="menu-item"
+          :class="{ 'router-link-active': isMenuActive('parties') }"
+          >หน้าแรก</router-link
+        >
+        <router-link
           to="/vote"
           class="menu-item"
           :class="{ 'router-link-active': isMenuActive('vote') }"
           >ลงคะแนนเสียง/ดูผลคะแนน</router-link
-        >
-        <router-link
-          to="/"
-          class="menu-item"
-          :class="{ 'router-link-active': isMenuActive('parties') }"
-          >รายชื่อพรรค</router-link
         >
         <template v-if="isAdmin">
           <router-link
@@ -270,6 +279,7 @@ onUnmounted(() => {
         v-else-if="!showMobileUI && !authStore.isAuthenticated"
         class="main-menu"
       >
+        <router-link to="/" class="menu-item">หน้าแรก</router-link>
         <router-link to="/login" class="menu-item">เข้าใช้งาน</router-link>
       </nav>
     </div>

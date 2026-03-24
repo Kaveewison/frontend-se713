@@ -49,18 +49,7 @@ onMounted(async () => {
     </div>
 
     <div class="filters-row">
-      <div class="dropdowns">
-        <CommonDropdown
-          :model-value="selectedProvince"
-          placeholder="ทุกจังหวัด"
-          :options="provinceOptions"
-        />
-        <CommonDropdown
-          :model-value="selectedDistrict"
-          placeholder="ทุกเขตเลือกตั้ง"
-          :options="districtOptions"
-        />
-      </div>
+      <div class="dropdowns"></div>
 
       <div class="status-section">
         <span class="status-label">สถานะการปิดหีบ:</span>

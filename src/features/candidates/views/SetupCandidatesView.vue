@@ -145,7 +145,7 @@ async function handleSubmit(user: User) {
 
     await userStore.fetchUsers();
   } catch (error: any) {
-    showError(error.message || 'เกิดข้อผิดพลาดในการลงสมัคร');
+    showError('ลงสมัครไม่สำเร็จ');
   }
 }
 
@@ -338,16 +338,16 @@ onMounted(async () => {
           <button
             class="btn"
             :class="
-              candidateForms[user.id].isCandidate
-                ? 'btn-primary'
-                : 'btn-disabled'
+              !candidateForms[user.id].isCandidate || isRegistered(user)
+                ? 'btn-disabled'
+                : 'btn-primary'
             "
             :disabled="
-              !candidateForms[user.id].isCandidate || candidateStore.isLoading
+              !candidateForms[user.id].isCandidate || candidateStore.isLoading || isRegistered(user)
             "
             @click="handleSubmit(user)"
           >
-            ลงสมัคร
+            {{ isRegistered(user) ? 'ลงสมัครแล้ว' : 'ลงสมัคร' }}
           </button>
         </div>
       </div>
@@ -675,6 +675,8 @@ onMounted(async () => {
   font-size: 0.9rem;
   transition: all 0.2s;
   white-space: nowrap;
+  min-width: 120px;
+  text-align: center;
 }
 
 .btn-primary {
