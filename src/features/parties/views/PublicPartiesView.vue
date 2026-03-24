@@ -1,47 +1,100 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useElectionStore, useConstituencyStore } from '@/stores';
+import { storeToRefs } from 'pinia';
 import PublicPartiesCardLayout from '@/features/parties/components/PublicPartiesCardLayout.vue';
+import CommonDropdown from '@/components/common/CommonDropdown.vue';
+import type { DropdownOption } from '@/components/common/CommonDropdown.vue';
 
 const router = useRouter();
 const electionStore = useElectionStore();
 const constituencyStore = useConstituencyStore();
 
-const searchQuery = ref('');
+const { constituencies } = storeToRefs(constituencyStore);
 
-const filteredParties = computed(() => {
-  if (!searchQuery.value) {
-    return electionStore.partyOverview;
-  }
+const selectedProvinceId = ref<string | number | null>(null);
+const selectedDistrictId = ref<string | number | null>(null);
 
-  const query = searchQuery.value.toLowerCase().trim();
-  return electionStore.partyOverview.filter((party: any) =>
-    party.name.toLowerCase().includes(query),
+const provinceOptions = computed<DropdownOption[]>(() => {
+  const seen = new Set<string>();
+  const list = constituencies.value
+    .filter((c) => {
+      const prov = c.province || '';
+      if (!prov || seen.has(prov)) return false;
+      seen.add(prov);
+      return true;
+    })
+    .map((c) => ({ label: c.province || '', value: c.id }));
+  return [{ label: 'ทั้งหมด', value: '' }, ...list];
+});
+
+const districtsForProvince = computed(() => {
+  if (!selectedProvinceId.value) return [];
+  const anchor = constituencies.value.find(
+    (c) => c.id === Number(selectedProvinceId.value),
   );
+  if (!anchor?.province) return [];
+  return constituencies.value.filter((c) => c.province === anchor.province);
 });
 
-const isPollingOpen = computed(() => {
-  return constituencyStore.isAllOpened;
-});
+const districts = districtsForProvince;
+
+const districtOptions = computed<DropdownOption[]>(() =>
+  districtsForProvince.value.map((c) => ({
+    label: `เขต ${c.districtNumber}`,
+    value: c.id,
+  })),
+);
+
+const handleProvinceChange = (val: string | number) => {
+  selectedProvinceId.value = val === '' ? null : val;
+  selectedDistrictId.value = null;
+};
+
+const isPollingOpen = computed(() => constituencyStore.isAllOpened);
+
+const filteredParties = computed(() => electionStore.partyOverview);
 
 const viewMembers = (partyId: number) => {
   router.push(`/parties/public/${partyId}`);
 };
 
-const loadData = async () => {
+const loadData = async (params?: { id?: number; districtNumber?: number }) => {
   try {
-    Promise.all([
-      electionStore.fetchPartyOverview(),
-      constituencyStore.fetchConstituencies(),
-    ]);
+    await electionStore.fetchPartyOverview(params);
   } catch (error) {
     console.error('Failed to load party overview:', error);
   }
 };
 
-onMounted(() => {
-  loadData();
+watch(selectedDistrictId, (districtId) => {
+  if (!districtId) {
+    if (selectedProvinceId.value) {
+      loadData({ id: Number(selectedProvinceId.value) });
+    } else {
+      loadData();
+    }
+    return;
+  }
+  const constituency = districts.value.find((c) => c.id === Number(districtId));
+  if (constituency) {
+    loadData({ id: constituency.id, districtNumber: constituency.districtNumber });
+  }
+});
+
+watch(selectedProvinceId, (provId) => {
+  if (!provId) {
+    loadData();
+  } else {
+    loadData({ id: Number(provId) });
+  }
+});
+
+
+onMounted(async () => {
+  await constituencyStore.fetchConstituencies();
+  await loadData();
 });
 </script>
 
@@ -50,25 +103,19 @@ onMounted(() => {
     <h2 class="title">รายชื่อพรรคการเมือง</h2>
 
     <div class="top-bar">
-      <div class="search-box">
-        <svg
-          class="icon-search"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 103.5 10.5a7.5 7.5 0 0013.15 6.15z"
-          />
-        </svg>
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="ค้นหาชื่อพรรค"
-          class="search-input"
+      <div class="filters-bar">
+        <CommonDropdown
+          v-model="selectedProvinceId"
+          :options="provinceOptions"
+          placeholder="เลือกจังหวัด"
+          @change="handleProvinceChange"
+        />
+        <CommonDropdown
+          v-model="selectedDistrictId"
+          :key="selectedProvinceId ?? 'none'"
+          :options="districtOptions"
+          placeholder="เลือกเขต"
+          :disabled="!selectedProvinceId"
         />
       </div>
 
@@ -92,15 +139,11 @@ onMounted(() => {
 
     <div v-else-if="electionStore.error" class="error-state">
       <p>{{ electionStore.error }}</p>
-      <button class="btn-retry" @click="loadData">ลองอีกครั้ง</button>
+      <button class="btn-retry" @click="() => loadData()">ลองอีกครั้ง</button>
     </div>
 
     <div v-else-if="filteredParties.length === 0" class="empty-state">
-      <p>
-        {{
-          searchQuery ? 'ไม่พบพรรคการเมืองที่ค้นหา' : 'ไม่มีข้อมูลพรรคการเมือง'
-        }}
-      </p>
+      <p>ไม่มีข้อมูลพรรคการเมือง</p>
     </div>
 
     <div v-else class="parties-list">
@@ -108,8 +151,8 @@ onMounted(() => {
         <div class="col-num"></div>
         <div class="col-profile">พรรคการเมือง</div>
         <div class="col-policy">นโยบายพรรค</div>
-        <div class="col-members">จำนวนสมาชิก</div>
-        <div class="col-score">คะแนนที่ได้</div>
+        <div class="col-members">จำนวนผู้สมัคร</div>
+        <div class="col-score">จำนวนผู้ชนะ</div>
         <div class="col-action"></div>
       </div>
 
@@ -154,34 +197,11 @@ onMounted(() => {
   flex-wrap: wrap;
 }
 
-.search-box {
-  position: relative;
-  width: 280px;
-  max-width: 100%;
-}
-
-.search-input {
-  width: 100%;
-  padding: 8px 14px 8px 36px;
-  border: 1px solid var(--border-input, #e2e8f0);
-  border-radius: var(--radius-md);
-  outline: none;
-  font-size: 0.88rem;
-  color: var(--text-main);
-}
-
-.search-input::placeholder {
-  color: var(--text-muted, #a0aec0);
-}
-
-.icon-search {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 16px;
-  height: 16px;
-  color: var(--text-muted, #a0aec0);
+.filters-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 /* Status toggle */
@@ -320,12 +340,32 @@ onMounted(() => {
     align-items: flex-start;
   }
 
-  .search-box {
+  .filters-bar {
     width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filters-bar :deep(.form-group) {
+    width: 100%;
+  }
+
+  .status-toggle {
+    font-size: 0.9rem;
   }
 
   .list-header {
     display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 18px;
+  }
+
+  .btn-retry {
+    width: 100%;
   }
 }
 </style>

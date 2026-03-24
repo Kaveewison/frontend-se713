@@ -21,7 +21,16 @@ export const API_ENDPOINTS = {
 
   ELECTION: {
     BASE: '/election',
-    OVERVIEW: '/election/party-overview',
+    OVERVIEW: (params?: { id?: number; districtNumber?: number }) => {
+      const qs = new URLSearchParams();
+      if (params?.id != null) qs.set('id', String(params.id));
+      if (params?.districtNumber != null)
+        qs.set('districtNumber', String(params.districtNumber));
+      const query = qs.toString();
+      return query
+        ? `/election/party-overview?${query}`
+        : '/election/party-overview';
+    },
     PUBLIC_PARTY_BY_ID: (id: number) => `/election/public/party/${id}`,
     CREATE_PARTY: '/election/party',
     UPDATE_PARTY: (id: number) => `/election/party/${id}`,

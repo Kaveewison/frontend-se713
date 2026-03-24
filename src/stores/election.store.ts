@@ -24,13 +24,16 @@ export const useElectionStore = defineStore('election', {
   getters: {},
 
   actions: {
-    async fetchPartyOverview(): Promise<void> {
+    async fetchPartyOverview(params?: {
+      id?: number;
+      districtNumber?: number;
+    }): Promise<void> {
       this.isLoading = true;
       this.error = null;
 
       try {
         const response = await httpClient.get<PartyOverviewResponse>(
-          API_ENDPOINTS.ELECTION.OVERVIEW,
+          API_ENDPOINTS.ELECTION.OVERVIEW(params),
         );
         this.partyOverview = response.data;
       } catch (err: any) {
@@ -59,8 +62,6 @@ export const useElectionStore = defineStore('election', {
         this.isLoading = false;
       }
     },
-
-
 
     async fetchPublicPartyById(id: number): Promise<void> {
       this.isLoading = true;

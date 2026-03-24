@@ -7,7 +7,7 @@ import DashboardSubNav from '@/components/DashboardSubNav.vue';
 const route = useRoute();
 
 const isDashboardRoute = computed(() => {
-  const authRoutes = ['/', '/login', '/register'];
+  const authRoutes = ['/login', '/register'];
   return !authRoutes.includes(route.path);
 });
 </script>

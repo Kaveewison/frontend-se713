@@ -276,7 +276,6 @@ onUnmounted(() => {
   </header>
 </template>
 
-<
 <style scoped>
 .top-nav {
   background-color: white;
