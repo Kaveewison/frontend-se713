@@ -12,7 +12,7 @@ const constituencyStore = useConstituencyStore();
 const electionStore = useElectionStore();
 
 const partyId = computed(() => Number(route.params.id) || 1);
-const isPublicRoute = computed(() => route.path.includes('/parties/public'));
+const isPublicRoute = computed(() => !route.path.includes('/candidates'));
 const backPath = computed(() => isPublicRoute.value ? '/parties/public' : '/candidates/party');
 
 const { publicPartyDetail: party, isLoading, error } = storeToRefs(electionStore);

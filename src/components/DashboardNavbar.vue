@@ -129,7 +129,7 @@ onUnmounted(() => {
               <!-- Parties Link (no toggle) -->
               <div class="mobile-menu-group">
                 <router-link
-                  to="/parties/public"
+                  to="/"
                   class="mobile-menu-item mobile-menu-group-title"
                   :class="{ 'router-link-active': isMenuActive('parties') }"
                   @click="closeMobileMenu"
@@ -239,7 +239,7 @@ onUnmounted(() => {
           >ลงคะแนนเสียง/ดูผลคะแนน</router-link
         >
         <router-link
-          to="/parties"
+          to="/"
           class="menu-item"
           :class="{ 'router-link-active': isMenuActive('parties') }"
           >รายชื่อพรรค</router-link

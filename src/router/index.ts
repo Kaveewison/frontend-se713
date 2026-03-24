@@ -7,7 +7,36 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      redirect: '/parties/public',
+      name: 'parties-public',
+      component: () =>
+        import('../features/parties/views/PublicPartiesView.vue'),
+      meta: {
+        requiresAuth: false,
+        useDashboardLayout: true,
+        menuGroup: 'parties',
+      },
+    },
+    {
+      path: '/parties/public',
+      name: 'parties-public-alt',
+      component: () =>
+        import('../features/parties/views/PublicPartiesView.vue'),
+      meta: {
+        requiresAuth: false,
+        useDashboardLayout: true,
+        menuGroup: 'parties',
+      },
+    },
+    {
+      path: '/parties/public/:id',
+      name: 'parties-members',
+      component: () =>
+        import('../features/parties/views/PublicPartyMembersView.vue'),
+      meta: {
+        requiresAuth: false,
+        useDashboardLayout: true,
+        menuGroup: 'parties',
+      },
     },
     {
       path: '/login',
@@ -66,34 +95,7 @@ const router = createRouter({
         },
       ],
     },
-    {
-      path: '/parties',
-      redirect: '/parties/public',
-      children: [
-        {
-          path: 'public',
-          name: 'parties-public',
-          component: () =>
-            import('../features/parties/views/PublicPartiesView.vue'),
-          meta: {
-            requiresAuth: false,
-            useDashboardLayout: true,
-            menuGroup: 'parties',
-          },
-        },
-        {
-          path: 'public/:id',
-          name: 'parties-members',
-          component: () =>
-            import('../features/parties/views/PublicPartyMembersView.vue'),
-          meta: {
-            requiresAuth: false,
-            useDashboardLayout: true,
-            menuGroup: 'parties',
-          },
-        },
-      ],
-    },
+
     {
       path: '/candidates',
       redirect: '/candidates/party',
