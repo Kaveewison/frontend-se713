@@ -353,11 +353,17 @@ export const useConstituencyStore = defineStore('constituency', {
       this.error = null;
 
       try {
+        // Only toggle constituencies that don't match the desired state
+        const constituenciesToToggle = this.constituencies.filter(
+          (c) => c.isClosed !== isClosed,
+        );
+
         await Promise.all(
-          this.constituencies.map((c) =>
-            this.updateConstituency(c.id, { isClosed }),
+          constituenciesToToggle.map((c) =>
+            this.toggleConstituencyStatus(c.id),
           ),
         );
+
         this.isAllOpened = !isClosed;
       } catch (err: any) {
         this.error = err.message || 'เกิดข้อผิดพลาดในการสลับสถานะเขตเลือกตั้ง';
