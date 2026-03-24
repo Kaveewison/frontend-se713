@@ -2,18 +2,13 @@
 import { computed, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useElectionStore, useVoteStore } from '@/stores';
-import CommonDropdown from '@/components/common/CommonDropdown.vue';
 
 const electionStore = useElectionStore();
 const voteStore = useVoteStore();
 
 const { electionResults, isLoading } = storeToRefs(electionStore);
 
-const selectedProvince = '';
-const selectedDistrict = '';
 
-const provinceOptions = computed(() => []);
-const districtOptions = computed(() => []);
 
 const constituency = computed(
   () => electionResults.value?.constituency ?? null,
