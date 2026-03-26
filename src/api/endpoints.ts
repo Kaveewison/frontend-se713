@@ -4,7 +4,6 @@ export const API_ENDPOINTS = {
     LOGIN: '/auth/login',
     REGISTER: '/auth/register',
     LOGOUT: '/auth/logout',
-    REFRESH: '/auth/refresh',
     CURRENT_USER: `/auth/me`,
     UPLOAD_PROFILE_IMAGE: '/auth/upload-profile-image',
     PROFILE: '/auth/profile',
@@ -14,13 +13,11 @@ export const API_ENDPOINTS = {
   USERS: {
     BASE: '/admin/users',
     BY_ID: (id: number) => `/admin/user/${id}`,
-    TOGGLE_ECT: (id: number) => `/users/${id}/ect-status`,
     PROMOTE_EC: (id: number) => `/admin/promote-ec/${id}`,
     DEMOTE_VOTER: (id: number) => `/admin/demote-voter/${id}`,
   },
 
   ELECTION: {
-    BASE: '/election',
     OVERVIEW: (params?: { id?: number; districtNumber?: number }) => {
       const qs = new URLSearchParams();
       if (params?.id != null) qs.set('id', String(params.id));
@@ -56,20 +53,12 @@ export const API_ENDPOINTS = {
   // Candidates
   CANDIDATES: {
     BASE: '/candidates',
-    BY_ID: (id: number) => `/candidates/${id}`,
-    BY_CONSTITUENCY: (constituencyId: number) =>
-      `/candidates/constituency/${constituencyId}`,
   },
 
   // Votes
   VOTES: {
     SUBMIT: '/votes',
-    RESULTS: '/votes/results',
     MY_VOTE: '/votes/my-vote',
-    BY_CONSTITUENCY: (constituencyId: number) =>
-      `/votes/results/constituency/${constituencyId}`,
-    HAS_VOTED: (userId: number) => `/votes/has-voted/${userId}`,
-    HISTORY: (userId: number) => `/votes/history/${userId}`,
     BALLOT: '/votes/ballot',
   },
 

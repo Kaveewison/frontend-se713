@@ -8,8 +8,6 @@ const voteStore = useVoteStore();
 
 const { electionResults, isLoading } = storeToRefs(electionStore);
 
-
-
 const constituency = computed(
   () => electionResults.value?.constituency ?? null,
 );
@@ -318,7 +316,6 @@ onMounted(async () => {
 
 .policy-text {
   display: -webkit-box;
-  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   max-width: 280px;
