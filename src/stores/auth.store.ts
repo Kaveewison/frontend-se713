@@ -87,19 +87,10 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    async logout(): Promise<void> {
-      this.isLoading = true;
-
-      try {
-        await httpClient.post(API_ENDPOINTS.AUTH.LOGOUT);
-      } catch (err) {
-        console.error('Logout error:', err);
-      } finally {
-        this.currentUser = null;
-        this.isAuthenticated = false;
-        tokenManager.clearTokens();
-        this.isLoading = false;
-      }
+    logout(): void {
+      this.currentUser = null;
+      this.isAuthenticated = false;
+      tokenManager.clearTokens();
     },
 
     async checkAuth(): Promise<void> {

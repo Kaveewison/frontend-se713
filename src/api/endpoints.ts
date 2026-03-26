@@ -3,7 +3,6 @@ export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: '/auth/login',
     REGISTER: '/auth/register',
-    LOGOUT: '/auth/logout',
     CURRENT_USER: `/auth/me`,
     UPLOAD_PROFILE_IMAGE: '/auth/upload-profile-image',
     PROFILE: '/auth/profile',
